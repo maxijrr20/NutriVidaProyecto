@@ -1,11 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/templates/MainLayout';
 import { HomePage } from './pages/HomePage';
+import { ServiciosPage } from './pages/ServiciosPage';
 import { LoginPage } from './pages/LoginPage';
 
-// Marcadores provisionales
-const ServiciosPage = () => <main style={{ padding: '40px', textAlign: 'center' }}><h2>Módulo Servicios (En desarrollo)</h2></main>;
-const ContactoPage = () => <main style={{ padding: '40px', textAlign: 'center' }}><h2>Módulo Agendar Cita (En desarrollo)</h2></main>;
+const ContactoPage = () => (
+  <main className="p-5 text-center">
+    <h2>Agendar Cita (En construcción)</h2>
+  </main>
+);
 
 function App() {
   return (

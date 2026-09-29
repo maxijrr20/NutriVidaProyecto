@@ -330,3 +330,89 @@ main {
     gap: 24px;
   }
 }
+/* CATÁLOGO DE SERVICIOS */
+.filtros-categorias {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.filtro-btn {
+  background-color: #ffffff;
+  border: 1px solid #d1e7dd;
+  color: #4b5563;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filtro-btn:hover {
+  border-color: #0ea82f;
+  color: #0ea82f;
+}
+
+.filtro-btn.activo {
+  background-color: #0ea82f;
+  border-color: #0ea82f;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.grilla-servicios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.tarjeta-servicio {
+  background-color: #ffffff;
+  border: 1px solid #d1e7dd;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.tarjeta-servicio .badge-categoria {
+  align-self: flex-start;
+  background-color: #eaf4ee;
+  color: #0ea82f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.tarjeta-servicio h3 {
+  font-size: 1.25rem;
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+.tarjeta-servicio p {
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.servicio-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 16px;
+}
+
+.boton-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
