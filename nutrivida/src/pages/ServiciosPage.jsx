@@ -1,21 +1,19 @@
 import React from 'react';
 import { ServicesCatalogSection } from '../components/organisms/ServicesCatalogSection';
+import { TeamDirectorySection } from '../components/organisms/TeamDirectorySection';
 
 export const ServiciosPage = () => {
   return (
-    <main className="pagina-servicios">
-      {/* 1. Catálogo interactivo de servicios */}
+    <main className="pagina-servicios py-4">
+      {/* 1. Catálogo interactivo de servicios con filtros */}
       <ServicesCatalogSection />
 
       <hr className="separador-secciones my-5" />
 
-      {/* 2. Sección reservada para que la desarrolle tu compañera */}
-      <section className="equipo-nutricionistas-seccion text-center p-4">
-        <h2>Equipo de Nutricionistas</h2>
-        <p className="text-muted">
-          (En desarrollo por equipo: listado de especialistas certificados)
-        </p>
-      </section>
+      {/* 2. Directorio completo del equipo médico */}
+      <TeamDirectorySection />
     </main>
   );
 };
+
+export default ServiciosPage;
