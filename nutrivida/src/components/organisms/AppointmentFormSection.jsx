@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import imgConsulta from '../../assets/consulta-nutricion.png';
 import nutricionistasData from '../../data/nutricionistas.json';
 import serviciosData from '../../data/servicios.json';
 
@@ -132,7 +133,6 @@ export const AppointmentFormSection = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Si cambia de nutricionista, resetear la hora para evitar incompatibilidades
     if (name === 'nutricionistaCodigo') {
       setFormData((prev) => ({ ...prev, [name]: value, hora: '' }));
     } else {
@@ -177,7 +177,7 @@ export const AppointmentFormSection = () => {
   };
 
   return (
-    <section className="formulario-agendamiento-contenedor">
+    <section className="formulario-agendamiento-contenedor shadow-sm">
       {enviado ? (
         <div className="mensaje-confirmacion text-center p-5">
           <div className="icono-exito mb-3">✓</div>
@@ -220,176 +220,216 @@ export const AppointmentFormSection = () => {
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} noValidate className="formulario-cita p-4 p-md-5">
-          <div className="text-center mb-4">
-            <h2 className="titulo-seccion">Agendar Consulta Nutricional</h2>
-            <p className="text-muted">
-              Completa el formulario para coordinar tu evaluación presencial o teleconsulta.
-            </p>
+        <div className="row g-0 agendamiento-card-layout">
+          {/* Columna Izquierda: Banner con la Imagen de Consulta */}
+          <div className="col-12 col-lg-5 agendamiento-banner d-flex flex-column justify-content-between p-4 p-md-5">
+            <div>
+              <span className="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-semibold mb-3">
+                Atención Presencial y Online
+              </span>
+              <h3 className="fw-bold text-dark mt-2 mb-3">
+                Tu salud en manos de especialistas
+              </h3>
+              <p className="text-secondary small mb-3">
+                Evaluaciones integrales y planes nutricionales personalizados para ayudarte a alcanzar tus metas de forma sostenible.
+              </p>
+            </div>
+
+            {/* Aquí va la imagen */}
+            <div className="imagen-ilustrativa-wrapper text-center my-3">
+              <img
+                src={imgConsulta}
+                alt="Consulta Nutricional NutriVida"
+                className="img-fluid agendamiento-img shadow-sm"
+              />
+            </div>
+
+            <div className="banner-puntos-clave pt-3 border-top">
+              <div className="d-flex align-items-center mb-2">
+                <span className="punto-icono me-2">🌿</span>
+                <span className="small text-muted">Evaluación antropométrica y bioimpedancia</span>
+              </div>
+              <div className="d-flex align-items-center">
+                <span className="punto-icono me-2">📋</span>
+                <span className="small text-muted">Acompañamiento personalizado y continuo</span>
+              </div>
+            </div>
           </div>
 
-          <div className="row g-3">
-            {/* Nombre Completo */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Nombre Completo *</label>
-              <input
-                type="text"
-                name="nombreCompleto"
-                className={`form-control ${tocado.nombreCompleto && (errores.nombreCompleto ? 'is-invalid' : 'is-valid')}`}
-                placeholder="Ej. Maximiliano Valenzuela"
-                value={formData.nombreCompleto}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {tocado.nombreCompleto && errores.nombreCompleto && (
-                <div className="invalid-feedback">{errores.nombreCompleto}</div>
-              )}
+          {/* Columna Derecha: Formulario */}
+          <div className="col-12 col-lg-7 p-4 p-md-5 bg-white">
+            <div className="mb-4">
+              <h3 className="fw-bold text-dark mb-1">Agendar Consulta Nutricional</h3>
+              <p className="text-muted small">
+                Completa tus datos para coordinar el horario de tu sesión médica.
+              </p>
             </div>
 
-            {/* RUT */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">RUT *</label>
-              <input
-                type="text"
-                name="rut"
-                className={`form-control ${tocado.rut && (errores.rut ? 'is-invalid' : 'is-valid')}`}
-                placeholder="Ej. 12.345.678-9"
-                value={formData.rut}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {tocado.rut && errores.rut && (
-                <div className="invalid-feedback">{errores.rut}</div>
-              )}
-            </div>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="row g-3">
+                {/* Nombre Completo */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Nombre Completo *</label>
+                  <input
+                    type="text"
+                    name="nombreCompleto"
+                    className={`form-control form-control-sm ${tocado.nombreCompleto && (errores.nombreCompleto ? 'is-invalid' : 'is-valid')}`}
+                    placeholder="Ej. Maximiliano Valenzuela"
+                    value={formData.nombreCompleto}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  {tocado.nombreCompleto && errores.nombreCompleto && (
+                    <div className="invalid-feedback">{errores.nombreCompleto}</div>
+                  )}
+                </div>
 
-            {/* Email */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Correo Electrónico *</label>
-              <input
-                type="email"
-                name="email"
-                className={`form-control ${tocado.email && (errores.email ? 'is-invalid' : 'is-valid')}`}
-                placeholder="ejemplo@correo.cl"
-                value={formData.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {tocado.email && errores.email && (
-                <div className="invalid-feedback">{errores.email}</div>
-              )}
-            </div>
+                {/* RUT */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">RUT *</label>
+                  <input
+                    type="text"
+                    name="rut"
+                    className={`form-control form-control-sm ${tocado.rut && (errores.rut ? 'is-invalid' : 'is-valid')}`}
+                    placeholder="Ej. 12.345.678-9"
+                    value={formData.rut}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  {tocado.rut && errores.rut && (
+                    <div className="invalid-feedback">{errores.rut}</div>
+                  )}
+                </div>
 
-            {/* Teléfono */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Teléfono / WhatsApp *</label>
-              <input
-                type="tel"
-                name="telefono"
-                className={`form-control ${tocado.telefono && (errores.telefono ? 'is-invalid' : 'is-valid')}`}
-                placeholder="+56 9 1234 5678"
-                value={formData.telefono}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {tocado.telefono && errores.telefono && (
-                <div className="invalid-feedback">{errores.telefono}</div>
-              )}
-            </div>
+                {/* Email */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Correo Electrónico *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    className={`form-control form-control-sm ${tocado.email && (errores.email ? 'is-invalid' : 'is-valid')}`}
+                    placeholder="ejemplo@correo.cl"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  {tocado.email && errores.email && (
+                    <div className="invalid-feedback">{errores.email}</div>
+                  )}
+                </div>
 
-            {/* Servicio */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Servicio o Plan Requerido *</label>
-              <select
-                name="servicioId"
-                className="form-select is-valid"
-                value={formData.servicioId}
-                onChange={handleChange}
-              >
-                {serviciosData.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nombre} (${s.precio?.toLocaleString('es-CL')} CLP) — {s.duracion}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* Teléfono */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Teléfono / WhatsApp *</label>
+                  <input
+                    type="tel"
+                    name="telefono"
+                    className={`form-control form-control-sm ${tocado.telefono && (errores.telefono ? 'is-invalid' : 'is-valid')}`}
+                    placeholder="+56 9 1234 5678"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  {tocado.telefono && errores.telefono && (
+                    <div className="invalid-feedback">{errores.telefono}</div>
+                  )}
+                </div>
 
-            {/* Nutricionista */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Nutricionista de Preferencia *</label>
-              <select
-                name="nutricionistaCodigo"
-                className="form-select is-valid"
-                value={formData.nutricionistaCodigo}
-                onChange={handleChange}
-              >
-                {nutricionistasData.map((n) => (
-                  <option key={n.codigo} value={n.codigo}>
-                    {n.nombre} ({n.dias} | {n.horario})
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* Servicio */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Servicio o Plan Requerido *</label>
+                  <select
+                    name="servicioId"
+                    className="form-select form-select-sm is-valid"
+                    value={formData.servicioId}
+                    onChange={handleChange}
+                  >
+                    {serviciosData.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nombre} (${s.precio?.toLocaleString('es-CL')} CLP) — {s.duracion}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Fecha */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Fecha Preferente *</label>
-              <input
-                type="date"
-                name="fecha"
-                min={fechaMinima}
-                className={`form-control ${tocado.fecha && (errores.fecha ? 'is-invalid' : 'is-valid')}`}
-                value={formData.fecha}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {tocado.fecha && errores.fecha && (
-                <div className="invalid-feedback">{errores.fecha}</div>
-              )}
-            </div>
+                {/* Nutricionista */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Nutricionista de Preferencia *</label>
+                  <select
+                    name="nutricionistaCodigo"
+                    className="form-select form-select-sm is-valid"
+                    value={formData.nutricionistaCodigo}
+                    onChange={handleChange}
+                  >
+                    {nutricionistasData.map((n) => (
+                      <option key={n.codigo} value={n.codigo}>
+                        {n.nombre} ({n.dias} | {n.horario})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Bloque Horario Dinámico */}
-            <div className="col-12 col-md-6">
-              <label className="form-label fw-semibold">Bloque Horario Disponible *</label>
-              <select
-                name="hora"
-                className={`form-select ${tocado.hora && (errores.hora ? 'is-invalid' : 'is-valid')}`}
-                value={formData.hora}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              >
-                <option value="">Selecciona horario ({nutricionistaSeleccionado?.horario})...</option>
-                {horariosDisponibles.map((h) => (
-                  <option key={h} value={h}>
-                    {h} hrs
-                  </option>
-                ))}
-              </select>
-              {tocado.hora && errores.hora && (
-                <div className="invalid-feedback">{errores.hora}</div>
-              )}
-            </div>
+                {/* Fecha */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Fecha Preferente *</label>
+                  <input
+                    type="date"
+                    name="fecha"
+                    min={fechaMinima}
+                    className={`form-control form-control-sm ${tocado.fecha && (errores.fecha ? 'is-invalid' : 'is-valid')}`}
+                    value={formData.fecha}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  {tocado.fecha && errores.fecha && (
+                    <div className="invalid-feedback">{errores.fecha}</div>
+                  )}
+                </div>
 
-            {/* Motivo */}
-            <div className="col-12">
-              <label className="form-label fw-semibold">Motivo de Consulta o Antecedentes (Opcional)</label>
-              <textarea
-                name="motivo"
-                rows="3"
-                className="form-control"
-                placeholder="Indica tus objetivos (bajada de peso, masa muscular, exámenes alterados, etc.)..."
-                value={formData.motivo}
-                onChange={handleChange}
-              ></textarea>
-            </div>
+                {/* Bloque Horario */}
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-semibold">Bloque Horario Disponible *</label>
+                  <select
+                    name="hora"
+                    className={`form-select form-select-sm ${tocado.hora && (errores.hora ? 'is-invalid' : 'is-valid')}`}
+                    value={formData.hora}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  >
+                    <option value="">Selecciona horario ({nutricionistaSeleccionado?.horario})...</option>
+                    {horariosDisponibles.map((h) => (
+                      <option key={h} value={h}>
+                        {h} hrs
+                      </option>
+                    ))}
+                  </select>
+                  {tocado.hora && errores.hora && (
+                    <div className="invalid-feedback">{errores.hora}</div>
+                  )}
+                </div>
 
-            <div className="col-12 mt-4 text-center">
-              <button type="submit" className="btn btn-success btn-lg px-5 shadow-sm">
-                Confirmar Solicitud de Cita
-              </button>
-            </div>
+                {/* Motivo */}
+                <div className="col-12">
+                  <label className="form-label small fw-semibold">Motivo de Consulta o Antecedentes (Opcional)</label>
+                  <textarea
+                    name="motivo"
+                    rows="2"
+                    className="form-control form-control-sm"
+                    placeholder="Indica tus objetivos (bajada de peso, masa muscular, exámenes alterados, etc.)..."
+                    value={formData.motivo}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+
+                <div className="col-12 mt-4 text-end">
+                  <button type="submit" className="btn btn-success px-5 py-2 fw-semibold w-100 w-md-auto">
+                    Confirmar Solicitud de Cita
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       )}
     </section>
   );
