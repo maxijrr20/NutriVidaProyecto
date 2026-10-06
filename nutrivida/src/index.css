@@ -507,3 +507,36 @@ main {
   height: 1px;
   background-color: #d1e7dd;
 }
+
+/* PÁGINA Y FORMULARIO DE AGENDAMIENTO */
+.tarjeta-contacto-info {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #d1e7dd;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.formulario-agendamiento-contenedor {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #d1e7dd;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.icono-exito {
+  font-size: 3rem;
+  color: #198754;
+  background-color: #d1e7dd;
+  width: 70px;
+  height: 70px;
+  line-height: 70px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.resumen-tarjeta {
+  background-color: #f8f9fa;
+  border: 1px dashed #198754;
+  border-radius: 12px;
+  max-width: 480px;
+}
