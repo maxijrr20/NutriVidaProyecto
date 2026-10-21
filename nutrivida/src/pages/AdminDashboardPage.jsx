@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { listarServicios, crearServicio, eliminarServicio } from '../services/serviciosService';
 
+
 export const AdminDashboardPage = () => {
+  // Estado para controlar la pestaña activa del menú lateral
   const [seccionActiva, setSeccionActiva] = useState('resumen');
   
-  // Estado para el CRUD
+  // Sincronización del catálogo de servicios con la capa de datos local
   const [servicios, setServicios] = useState(listarServicios());
+  
+  // Estado del formulario para el registro de nuevos servicios
   const [nuevoServicio, setNuevoServicio] = useState({
     nombre: '',
     categoria: 'Consulta General',
@@ -13,9 +17,42 @@ export const AdminDashboardPage = () => {
     duracion: '45 min'
   });
 
+  // Nómina oficial de profesionales basada en el catálogo institucional
+  const equipoNutricionistas = [
+    {
+      id: 'NUT001',
+      nombre: 'Nut. Carolina Fuentes M.',
+      especialidad: 'Obesidad y síndrome metabólico',
+      horario: 'Lunes, Miércoles, Viernes | 09:00 - 17:00',
+      estado: 'Activo'
+    },
+    {
+      id: 'NUT002',
+      nombre: 'Nut. Rodrigo Sepúlveda A.',
+      especialidad: 'Nutrición deportiva y rendimiento',
+      horario: 'Martes, Jueves, Sábado | 09:00 - 14:00',
+      estado: 'Activo'
+    },
+    {
+      id: 'NUT003',
+      nombre: 'Nut. Daniela Morales C.',
+      especialidad: 'Alimentación vegetariana, vegana y trastornos alimentarios',
+      horario: 'Lunes a Viernes | 08:00 - 13:00',
+      estado: 'Activo'
+    },
+    {
+      id: 'NUT004',
+      nombre: 'Nut. Felipe Araya R.',
+      especialidad: 'Nutrición pediátrica y familiar',
+      horario: 'Martes a Viernes | 14:00 - 19:00',
+      estado: 'Activo'
+    }
+  ];
+
+  // Controlador para el registro e incorporación de nuevos servicios al estado
   const handleCrearServicio = (e) => {
     e.preventDefault();
-    if (!nuevoServicio.nombre || !nuevoServicio.precio) return;
+    if (!nuevoServicio.nombre.trim() || !nuevoServicio.precio) return;
 
     const servicioCreado = crearServicio({
       ...nuevoServicio,
@@ -26,8 +63,9 @@ export const AdminDashboardPage = () => {
     setNuevoServicio({ nombre: '', categoria: 'Consulta General', precio: '', duracion: '45 min' });
   };
 
+  // Controlador para la baja de servicios existentes con confirmación de usuario
   const handleEliminarServicio = (id) => {
-    if (window.confirm('¿Seguro que deseas eliminar este servicio?')) {
+    if (window.confirm('¿Desea eliminar este servicio del catálogo activo?')) {
       eliminarServicio(id);
       setServicios(servicios.filter(s => s.id !== id));
     }
@@ -36,7 +74,7 @@ export const AdminDashboardPage = () => {
   return (
     <div className="container-fluid my-4">
       <div className="row">
-        {/* Menu Lateral */}
+        {/* Navegación lateral del panel */}
         <div className="col-12 col-md-3 mb-4">
           <div className="list-group shadow-sm">
             <div className="list-group-item bg-success text-white fw-bold">
@@ -69,8 +107,10 @@ export const AdminDashboardPage = () => {
           </div>
         </div>
 
-        {/* Panel Principal */}
+        {/* Áreas de contenido dinámico según navegación */}
         <div className="col-12 col-md-9">
+          
+          {/* Vista 1: Resumen con métricas operativas de la clínica */}
           {seccionActiva === 'resumen' && (
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3 text-dark">Resumen de la Clínica NutriVida</h3>
@@ -89,7 +129,7 @@ export const AdminDashboardPage = () => {
                 </div>
                 <div className="col-12 col-sm-4">
                   <div className="p-3 bg-light rounded border text-center">
-                    <h4 className="fw-bold text-warning">2</h4>
+                    <h4 className="fw-bold text-warning">{equipoNutricionistas.length}</h4>
                     <p className="text-muted small mb-0">Nutricionistas Registrados</p>
                   </div>
                 </div>
@@ -97,6 +137,7 @@ export const AdminDashboardPage = () => {
             </div>
           )}
 
+          {/* Vista 2: Monitoreo de solicitudes y estados de atención */}
           {seccionActiva === 'solicitudes' && (
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3 text-dark">Solicitudes de Cita Recientes</h3>
@@ -115,14 +156,14 @@ export const AdminDashboardPage = () => {
                     <tr>
                       <td>Maximiliano Valenzuela</td>
                       <td>12.345.678-5</td>
-                      <td>Nut. Daniela Morales</td>
+                      <td>Nut. Carolina Fuentes M.</td>
                       <td>2026-10-22 | 09:00 hrs</td>
                       <td><span className="badge bg-warning text-dark">Pendiente</span></td>
                     </tr>
                     <tr>
                       <td>Ignacia Silva</td>
                       <td>19.876.543-2</td>
-                      <td>Nut. Felipe Araya</td>
+                      <td>Nut. Rodrigo Sepúlveda A.</td>
                       <td>2026-10-23 | 11:30 hrs</td>
                       <td><span className="badge bg-success">Confirmada</span></td>
                     </tr>
@@ -132,10 +173,12 @@ export const AdminDashboardPage = () => {
             </div>
           )}
 
+          {/* Vista 3: Módulo de administración del catálogo (CRUD) */}
           {seccionActiva === 'catalogo' && (
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3 text-dark">Administración del Catálogo de Servicios</h3>
               
+              {/* Formularios para alta de nuevos ítems */}
               <form onSubmit={handleCrearServicio} className="row g-2 mb-4 p-3 bg-light rounded border">
                 <div className="col-12 col-md-4">
                   <input
@@ -173,6 +216,7 @@ export const AdminDashboardPage = () => {
                 </div>
               </form>
 
+              {/* Tabla de consulta y eliminación de prestaciones */}
               <div className="table-responsive">
                 <table className="table table-striped align-middle">
                   <thead>
@@ -207,29 +251,27 @@ export const AdminDashboardPage = () => {
             </div>
           )}
 
+          {/* Vista 4: Directorio del cuerpo médico registrado */}
           {seccionActiva === 'usuarios' && (
             <div className="card shadow-sm p-4">
-              <h3 className="fw-bold mb-3 text-dark">Equipo de Nutricionistas</h3>
+              <h3 className="fw-bold mb-3 text-dark">Equipo de Nutricionistas NutriVida</h3>
               <ul className="list-group">
-                <li className="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>Nut. Daniela Morales</strong> (NUT001)
-                    <br />
-                    <small className="text-muted">Lunes, Miércoles, Viernes | 09:00 - 17:00</small>
-                  </div>
-                  <span className="badge bg-primary rounded-pill">Activo</span>
-                </li>
-                <li className="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>Nut. Felipe Araya</strong> (NUT002)
-                    <br />
-                    <small className="text-muted">Martes, Jueves, Sábado | 09:00 - 14:00</small>
-                  </div>
-                  <span className="badge bg-primary rounded-pill">Activo</span>
-                </li>
+                {equipoNutricionistas.map((nut) => (
+                  <li key={nut.id} className="list-group-item d-flex justify-content-between align-items-center py-3">
+                    <div>
+                      <strong>{nut.nombre}</strong> ({nut.id})
+                      <br />
+                      <small className="text-primary fw-semibold">{nut.especialidad}</small>
+                      <br />
+                      <small className="text-muted">{nut.horario}</small>
+                    </div>
+                    <span className="badge bg-primary rounded-pill">{nut.estado}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           )}
+
         </div>
       </div>
     </div>
