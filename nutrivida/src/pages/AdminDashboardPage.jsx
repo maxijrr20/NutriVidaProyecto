@@ -1,75 +1,80 @@
 import React, { useState } from 'react';
-import { listarServicios, crearServicio, eliminarServicio } from '../services/serviciosService';
+import { useServicios } from '../context/ServiciosContext';
+import { useCitas } from '../context/CitasContext';
+import nutricionistasData from '../data/nutricionistas.json';
 
+const CATEGORIAS = ['Consultas', 'Planes Especializados', 'Evaluaciones', 'Talleres'];
+
+const FORM_VACIO = {
+  nombre: '',
+  categoria: CATEGORIAS[0],
+  precio: '',
+  duracion: '45 min',
+  modalidad: 'Presencial',
+  descripcion: ''
+};
+
+const colorEstado = (estado) =>
+  estado === 'Cancelada' ? 'bg-danger' :
+  estado === 'Confirmada' ? 'bg-success' :
+  estado === 'Reprogramada' ? 'bg-info text-dark' : 'bg-warning text-dark';
 
 export const AdminDashboardPage = () => {
-  // Estado para controlar la pestaña activa del menú lateral
+  // Pestaña activa del menú lateral
   const [seccionActiva, setSeccionActiva] = useState('resumen');
-  
-  // Sincronización del catálogo de servicios con la capa de datos local
-  const [servicios, setServicios] = useState(listarServicios());
-  
-  // Estado del formulario para el registro de nuevos servicios
-  const [nuevoServicio, setNuevoServicio] = useState({
-    nombre: '',
-    categoria: 'Consulta General',
-    precio: '',
-    duracion: '45 min'
-  });
 
-  // Nómina oficial de profesionales basada en el catálogo institucional
-  const equipoNutricionistas = [
-    {
-      id: 'NUT001',
-      nombre: 'Nut. Carolina Fuentes M.',
-      especialidad: 'Obesidad y síndrome metabólico',
-      horario: 'Lunes, Miércoles, Viernes | 09:00 - 17:00',
-      estado: 'Activo'
-    },
-    {
-      id: 'NUT002',
-      nombre: 'Nut. Rodrigo Sepúlveda A.',
-      especialidad: 'Nutrición deportiva y rendimiento',
-      horario: 'Martes, Jueves, Sábado | 09:00 - 14:00',
-      estado: 'Activo'
-    },
-    {
-      id: 'NUT003',
-      nombre: 'Nut. Daniela Morales C.',
-      especialidad: 'Alimentación vegetariana, vegana y trastornos alimentarios',
-      horario: 'Lunes a Viernes | 08:00 - 13:00',
-      estado: 'Activo'
-    },
-    {
-      id: 'NUT004',
-      nombre: 'Nut. Felipe Araya R.',
-      especialidad: 'Nutrición pediátrica y familiar',
-      horario: 'Martes a Viernes | 14:00 - 19:00',
-      estado: 'Activo'
-    }
-  ];
+  // Datos compartidos: lo que se cambia aquí se ve al tiro en el sitio público
+  const { servicios, agregarServicio, editarServicio, eliminarServicio } = useServicios();
+  const { citas, actualizarCita } = useCitas();
 
-  // Controlador para el registro e incorporación de nuevos servicios al estado
-  const handleCrearServicio = (e) => {
-    e.preventDefault();
-    if (!nuevoServicio.nombre.trim() || !nuevoServicio.precio) return;
+  // Formulario del catálogo: sirve para crear y para editar
+  const [formServicio, setFormServicio] = useState(FORM_VACIO);
+  const [idEditando, setIdEditando] = useState(null);
 
-    const servicioCreado = crearServicio({
-      ...nuevoServicio,
-      precio: Number(nuevoServicio.precio)
-    });
-
-    setServicios([...servicios, servicioCreado]);
-    setNuevoServicio({ nombre: '', categoria: 'Consulta General', precio: '', duracion: '45 min' });
+  const handleChangeServicio = (e) => {
+    const { name, value } = e.target;
+    setFormServicio((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Controlador para la baja de servicios existentes con confirmación de usuario
+  const handleGuardarServicio = (e) => {
+    e.preventDefault();
+    if (!formServicio.nombre.trim() || !formServicio.precio) return;
+
+    const datos = { ...formServicio, precio: Number(formServicio.precio) };
+
+    if (idEditando) {
+      editarServicio(idEditando, datos);
+    } else {
+      agregarServicio(datos);
+    }
+    setFormServicio(FORM_VACIO);
+    setIdEditando(null);
+  };
+
+  const handleEditarServicio = (servicio) => {
+    setIdEditando(servicio.id);
+    setFormServicio({
+      nombre: servicio.nombre || '',
+      categoria: servicio.categoria || CATEGORIAS[0],
+      precio: servicio.precio ?? '',
+      duracion: servicio.duracion || '',
+      modalidad: servicio.modalidad || 'Presencial',
+      descripcion: servicio.descripcion || ''
+    });
+  };
+
+  const handleCancelarEdicion = () => {
+    setIdEditando(null);
+    setFormServicio(FORM_VACIO);
+  };
+
   const handleEliminarServicio = (id) => {
     if (window.confirm('¿Desea eliminar este servicio del catálogo activo?')) {
       eliminarServicio(id);
-      setServicios(servicios.filter(s => s.id !== id));
     }
   };
+
+  const citasPendientes = citas.filter((c) => c.estado === 'Pendiente' || c.estado === 'Reprogramada');
 
   return (
     <div className="container-fluid my-4">
@@ -123,13 +128,13 @@ export const AdminDashboardPage = () => {
                 </div>
                 <div className="col-12 col-sm-4">
                   <div className="p-3 bg-light rounded border text-center">
-                    <h4 className="fw-bold text-primary">12</h4>
-                    <p className="text-muted small mb-0">Citas de la Semana</p>
+                    <h4 className="fw-bold text-primary">{citasPendientes.length}</h4>
+                    <p className="text-muted small mb-0">Citas por Confirmar</p>
                   </div>
                 </div>
                 <div className="col-12 col-sm-4">
                   <div className="p-3 bg-light rounded border text-center">
-                    <h4 className="fw-bold text-warning">{equipoNutricionistas.length}</h4>
+                    <h4 className="fw-bold text-warning">{nutricionistasData.length}</h4>
                     <p className="text-muted small mb-0">Nutricionistas Registrados</p>
                   </div>
                 </div>
@@ -141,35 +146,47 @@ export const AdminDashboardPage = () => {
           {seccionActiva === 'solicitudes' && (
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3 text-dark">Solicitudes de Cita Recientes</h3>
-              <div className="table-responsive">
-                <table className="table table-hover align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Paciente</th>
-                      <th>RUT</th>
-                      <th>Especialista</th>
-                      <th>Fecha / Hora</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Maximiliano Valenzuela</td>
-                      <td>12.345.678-5</td>
-                      <td>Nut. Carolina Fuentes M.</td>
-                      <td>2026-10-22 | 09:00 hrs</td>
-                      <td><span className="badge bg-warning text-dark">Pendiente</span></td>
-                    </tr>
-                    <tr>
-                      <td>Ignacia Silva</td>
-                      <td>19.876.543-2</td>
-                      <td>Nut. Rodrigo Sepúlveda A.</td>
-                      <td>2026-10-23 | 11:30 hrs</td>
-                      <td><span className="badge bg-success">Confirmada</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {citas.length === 0 ? (
+                <p className="text-muted mb-0">Aún no hay solicitudes registradas.</p>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle">
+                    <thead className="table-light">
+                      <tr>
+                        <th>N°</th>
+                        <th>Paciente</th>
+                        <th>Servicio</th>
+                        <th>Especialista</th>
+                        <th>Fecha / Hora</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {citas.map((cita) => (
+                        <tr key={cita.id}>
+                          <td>#{cita.id}</td>
+                          <td>{cita.nombre}<br /><small className="text-muted">{cita.rut}</small></td>
+                          <td>{cita.servicio || '—'}</td>
+                          <td>{cita.nutricionista || 'Por asignar'}</td>
+                          <td>{cita.fecha}{cita.hora ? ` | ${cita.hora} hrs` : ''}</td>
+                          <td><span className={`badge ${colorEstado(cita.estado)}`}>{cita.estado}</span></td>
+                          <td>
+                            {cita.estado !== 'Confirmada' && cita.estado !== 'Cancelada' && (
+                              <button
+                                className="btn btn-outline-success btn-sm py-0 px-2"
+                                onClick={() => actualizarCita(cita.id, { estado: 'Confirmada' })}
+                              >
+                                Confirmar
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
@@ -178,41 +195,83 @@ export const AdminDashboardPage = () => {
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3 text-dark">Administración del Catálogo de Servicios</h3>
               
-              {/* Formularios para alta de nuevos ítems */}
-              <form onSubmit={handleCrearServicio} className="row g-2 mb-4 p-3 bg-light rounded border">
-                <div className="col-12 col-md-4">
+              {/* Formulario para crear o editar un servicio */}
+              <form onSubmit={handleGuardarServicio} className="row g-2 mb-4 p-3 bg-light rounded border">
+                <div className="col-12">
+                  <strong>{idEditando ? `Editando servicio #${idEditando}` : 'Nuevo servicio'}</strong>
+                </div>
+                <div className="col-12 col-md-6">
                   <input
                     type="text"
+                    name="nombre"
                     className="form-control form-control-sm"
                     placeholder="Nombre del servicio"
-                    value={nuevoServicio.nombre}
-                    onChange={(e) => setNuevoServicio({ ...nuevoServicio, nombre: e.target.value })}
+                    value={formServicio.nombre}
+                    onChange={handleChangeServicio}
                   />
                 </div>
-                <div className="col-12 col-md-3">
+                <div className="col-6 col-md-3">
                   <input
                     type="number"
+                    name="precio"
                     className="form-control form-control-sm"
                     placeholder="Precio CLP"
-                    value={nuevoServicio.precio}
-                    onChange={(e) => setNuevoServicio({ ...nuevoServicio, precio: e.target.value })}
+                    value={formServicio.precio}
+                    onChange={handleChangeServicio}
                   />
                 </div>
-                <div className="col-12 col-md-3">
+                <div className="col-6 col-md-3">
+                  <input
+                    type="text"
+                    name="duracion"
+                    className="form-control form-control-sm"
+                    placeholder="Duración"
+                    value={formServicio.duracion}
+                    onChange={handleChangeServicio}
+                  />
+                </div>
+                <div className="col-6 col-md-4">
                   <select
+                    name="categoria"
                     className="form-select form-select-sm"
-                    value={nuevoServicio.categoria}
-                    onChange={(e) => setNuevoServicio({ ...nuevoServicio, categoria: e.target.value })}
+                    value={formServicio.categoria}
+                    onChange={handleChangeServicio}
                   >
-                    <option value="Consulta General">Consulta General</option>
-                    <option value="Nutrición Deportiva">Nutrición Deportiva</option>
-                    <option value="Nutrición Infantil">Nutrición Infantil</option>
+                    {CATEGORIAS.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
-                <div className="col-12 col-md-2">
+                <div className="col-6 col-md-4">
+                  <select
+                    name="modalidad"
+                    className="form-select form-select-sm"
+                    value={formServicio.modalidad}
+                    onChange={handleChangeServicio}
+                  >
+                    <option value="Presencial">Presencial</option>
+                    <option value="Online">Online</option>
+                  </select>
+                </div>
+                <div className="col-12 col-md-4 d-flex gap-2">
                   <button type="submit" className="btn btn-success btn-sm w-100">
-                    + Agregar
+                    {idEditando ? 'Guardar cambios' : '+ Agregar'}
                   </button>
+                  {idEditando && (
+                    <button type="button" className="btn btn-secondary btn-sm w-100" onClick={handleCancelarEdicion}>
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+                <div className="col-12">
+                  <textarea
+                    name="descripcion"
+                    rows="2"
+                    className="form-control form-control-sm"
+                    placeholder="Descripción"
+                    value={formServicio.descripcion}
+                    onChange={handleChangeServicio}
+                  />
                 </div>
               </form>
 
@@ -235,7 +294,13 @@ export const AdminDashboardPage = () => {
                         <td>{s.nombre}</td>
                         <td>{s.categoria}</td>
                         <td>${s.precio?.toLocaleString('es-CL')} CLP</td>
-                        <td>
+                        <td className="d-flex gap-1">
+                          <button
+                            className="btn btn-outline-primary btn-sm py-0 px-2"
+                            onClick={() => handleEditarServicio(s)}
+                          >
+                            Editar
+                          </button>
                           <button
                             className="btn btn-outline-danger btn-sm py-0 px-2"
                             onClick={() => handleEliminarServicio(s.id)}
@@ -256,16 +321,16 @@ export const AdminDashboardPage = () => {
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3 text-dark">Equipo de Nutricionistas NutriVida</h3>
               <ul className="list-group">
-                {equipoNutricionistas.map((nut) => (
-                  <li key={nut.id} className="list-group-item d-flex justify-content-between align-items-center py-3">
+                {nutricionistasData.map((nut) => (
+                  <li key={nut.codigo} className="list-group-item d-flex justify-content-between align-items-center py-3">
                     <div>
-                      <strong>{nut.nombre}</strong> ({nut.id})
+                      <strong>{nut.nombre}</strong> ({nut.codigo})
                       <br />
                       <small className="text-primary fw-semibold">{nut.especialidad}</small>
                       <br />
-                      <small className="text-muted">{nut.horario}</small>
+                      <small className="text-muted">{nut.dias} | {nut.horario}</small>
                     </div>
-                    <span className="badge bg-primary rounded-pill">{nut.estado}</span>
+                    <span className="badge bg-primary rounded-pill">Activo</span>
                   </li>
                 ))}
               </ul>

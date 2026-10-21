@@ -17,7 +17,11 @@ export default function ResultadoPage() {
               <p className="mb-1"><strong>Paciente:</strong> {solicitud.nombre}</p>
               <p className="mb-1"><strong>RUT:</strong> {solicitud.rut}</p>
               <p className="mb-1"><strong>Nutricionista:</strong> {solicitud.nutricionista}</p>
-              <p className="mb-1"><strong>Fecha Agendada:</strong> {solicitud.fecha}</p>
+              <p className="mb-1"><strong>Servicio:</strong> {solicitud.servicio || 'Consulta nutricional'}</p>
+              <p className="mb-1"><strong>Fecha Agendada:</strong> {solicitud.fecha} {solicitud.hora && `a las ${solicitud.hora} hrs`}</p>
+              {solicitud.precio && (
+                <p className="mb-1"><strong>Valor:</strong> ${Number(solicitud.precio).toLocaleString('es-CL')} CLP</p>
+              )}
               <p className="mb-0">
                 <strong>Estado Actual:</strong>{' '}
                 <span className={`badge ${
@@ -35,6 +39,9 @@ export default function ResultadoPage() {
             <div className="alert alert-danger my-3">
               Ocurrió un error o la solicitud consultada no existe en el sistema.
             </div>
+            <Link to="/contacto" className="btn btn-danger mb-3">
+              Volver a intentarlo
+            </Link>
           </>
         )}
 

@@ -10,14 +10,16 @@ export default function ConfirmacionSolicitudPage() {
         <h3 className="text-success mb-3">¡Solicitud Registrada!</h3>
         {solicitud && (
           <div className="text-start bg-light p-3 rounded mb-3">
+            <p className="mb-1"><strong>N° de solicitud:</strong> #{solicitud.id}</p>
             <p className="mb-1"><strong>Paciente:</strong> {solicitud.nombre}</p>
             <p className="mb-1"><strong>Nutricionista:</strong> {solicitud.nutricionista}</p>
-            <p className="mb-1"><strong>Fecha:</strong> {solicitud.fecha}</p>
+            <p className="mb-1"><strong>Servicio:</strong> {solicitud.servicio}</p>
+            <p className="mb-1"><strong>Fecha:</strong> {solicitud.fecha} {solicitud.hora && `a las ${solicitud.hora} hrs`}</p>
             <p className="mb-0"><strong>Estado:</strong> {solicitud.estado}</p>
           </div>
         )}
         <div className="d-flex flex-column gap-2">
-          <Link to="/resultado" state={{ solicitud }} className="btn btn-success w-100">
+          <Link to="/resultado" state={{ solicitud, exito: !!solicitud }} className="btn btn-success w-100">
             Ver Resultado Final
           </Link>
           <Link to="/solicitud-en-curso" className="btn btn-outline-primary w-100">

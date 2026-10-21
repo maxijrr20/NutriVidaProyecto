@@ -5,9 +5,10 @@ import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 
-import servicios from '../data/servicios.json';
+import { useServicios } from '../context/ServiciosContext';
 
 function CategoriaDetallePage() {
+  const { servicios } = useServicios();
   const { categoria } = useParams();
   const nombreCategoria = decodeURIComponent(categoria);
 

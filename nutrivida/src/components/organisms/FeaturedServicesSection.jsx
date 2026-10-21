@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { FeaturedServiceCard } from '../molecules/FeaturedServiceCard';
-import serviciosData from '../../data/servicios.json';
+import { useServicios } from '../../context/ServiciosContext';
 
 export const FeaturedServicesSection = () => {
   const navigate = useNavigate();
+  const { servicios: serviciosData } = useServicios();
   const codigosDestacados = ['CN001', 'CN002', 'PL003'];
   const destacados = serviciosData.filter(s => codigosDestacados.includes(s.codigo));
 
