@@ -6,24 +6,51 @@ export const NavbarNutriVida = () => {
   const location = useLocation();
   const [sesion, setSesion] = useState(() => obtenerSesion());
 
-  // Revisa nuevamente la sesión cada vez que cambia la página
   useEffect(() => {
     setSesion(obtenerSesion());
   }, [location.pathname]);
 
   const cerrarSesion = () => {
-    // Borra solamente la sesión.
-    // Las citas permanecen guardadas en localStorage.
     localStorage.removeItem(CLAVE_SESION);
     setSesion(null);
   };
 
   return (
-    <header className="header-nutrivida">
-      <h1>Clínica Nutricional NutriVida</h1>
+    <header
+      className="header-nutrivida"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1rem',
+        flexWrap: 'wrap',
+        padding: '1rem 2rem',
+        backgroundColor: '#ffffff',
+      }}
+    >
+      <h1
+        style={{
+          fontSize: '1.5rem',
+          margin: 0,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Clínica Nutricional NutriVida
+      </h1>
 
-      <nav>
-        <ul>
+      <nav style={{ flex: 1 }}>
+        <ul
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+          }}
+        >
           <li>
             <NavLink
               to="/"
@@ -53,19 +80,37 @@ export const NavbarNutriVida = () => {
 
           <li>
             <NavLink
-              to="/contacto"
+              to="/categorias"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
-              Agendar Cita
+              Categorías
             </NavLink>
           </li>
 
           <li>
             <NavLink
-              to="/categorias"
+              to="/nosotros"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
-              Categorías
+              Nosotros
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/blog"
+              className={({ isActive }) => (isActive ? 'activo' : '')}
+            >
+              Blog
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/contacto"
+              className={({ isActive }) => (isActive ? 'activo' : '')}
+            >
+              Agendar Cita
             </NavLink>
           </li>
 
