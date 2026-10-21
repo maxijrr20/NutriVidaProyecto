@@ -2,6 +2,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
+import { Link } from 'react-router-dom';
 
 import servicios from '../data/servicios.json';
 
@@ -38,6 +40,14 @@ function CategoriasPage() {
                   <Card.Text className="text-muted">
                     {cantidad} servicios disponibles
                   </Card.Text>
+
+                  <Button
+                    as={Link}
+                    to={`/categorias/${encodeURIComponent(categoria)}`}
+                    variant="primary"
+                  >
+                    Ver servicios
+                  </Button>
 
                 </Card.Body>
               </Card>
