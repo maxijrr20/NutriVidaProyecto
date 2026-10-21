@@ -1,36 +1,50 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../components/organisms/LoginForm';
 
-/**
- * Vista de Inicio de Sesión para la clínica NutriVida.
- * Procesa la autenticación y almacena la sesión en localStorage, redirigiendo al panel de administración.
- */
 export const LoginPage = () => {
+  const navigate = useNavigate();
+
   const handleLogin = (data) => {
     console.log('Datos recibidos del formulario:', data);
 
-    // Obtener el valor del campo ingresado (email, usuario o RUT)
-    const valorIngresado = (data.email || data.rut || data.usuario || '').toLowerCase().trim();
+    const valorIngresado = (
+      data.email ||
+      data.rut ||
+      data.usuario ||
+      ''
+    )
+      .toLowerCase()
+      .trim();
 
-    // Comprobar si el usuario intenta ingresar como Administrador
     const esAdmin = valorIngresado.includes('admin');
 
     const usuarioSesion = {
-      nombre: esAdmin ? 'Administrador NutriVida' : (data.nombre || 'Paciente Demo'),
-      rut: esAdmin ? '11.111.111-1' : (data.email || '12.345.678-9'),
+      nombre: esAdmin
+        ? 'Administrador NutriVida'
+        : (data.nombre || 'Paciente Demo'),
+
+      rut: esAdmin
+        ? '11.111.111-1'
+        : (data.rut || '12.345.678-9'),
+
       rol: esAdmin ? 'ADMIN' : 'PACIENTE',
-      email: esAdmin ? 'admin@nutrivida.cl' : (data.email || 'paciente@nutrivida.cl')
+
+      email: esAdmin
+        ? 'admin@nutrivida.cl'
+        : (data.email || 'paciente@nutrivida.cl'),
     };
 
-    // Guardar en localStorage para persistencia
-    localStorage.setItem('nutrivida_session', JSON.stringify(usuarioSesion));
+    localStorage.setItem(
+      'nutrivida_session',
+      JSON.stringify(usuarioSesion)
+    );
 
-    // Redirección inmediata según el rol
     if (usuarioSesion.rol === 'ADMIN') {
-      window.location.href = '/admin';
+      navigate('/admin');
     } else {
-      window.location.href = '/';
+      navigate('/');
     }
   };
 

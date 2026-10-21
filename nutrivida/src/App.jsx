@@ -15,6 +15,9 @@ import ServiciosDestacadosPage from './pages/ServiciosDestacadosPage';
 import ConfirmacionSolicitudPage from './pages/ConfirmacionSolicitudPage';
 import SolicitudEnCursoPage from './pages/SolicitudEnCursoPage';
 import ResultadoPage from './pages/ResultadoPage';
+import NosotrosPage from './pages/NosotrosPage';
+import BlogPage from './pages/BlogPage';
+import BlogDetallePage from './pages/BlogDetallePage';
 
 function App() {
   return (
@@ -36,8 +39,13 @@ function App() {
             path="/destacados"
             element={<ServiciosDestacadosPage />}
           />
+          <Route path="/nosotros" element={<NosotrosPage />} />
 
           <Route path="/contacto" element={<ContactoPage />} />
+
+          <Route path="/blog" element={<BlogPage />} />
+
+          <Route path="/blog/:id" element={<BlogDetallePage />} />
 
           <Route
             path="/confirmacion-solicitud"
