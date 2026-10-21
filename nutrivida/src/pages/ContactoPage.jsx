@@ -175,5 +175,4 @@ export const ContactoPage = () => {
     </main>
   );
 };
-
 export default ContactoPage;

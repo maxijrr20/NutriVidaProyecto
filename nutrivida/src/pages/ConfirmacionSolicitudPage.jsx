@@ -16,9 +16,13 @@ export default function ConfirmacionSolicitudPage() {
             <p className="mb-0"><strong>Estado:</strong> {solicitud.estado}</p>
           </div>
         )}
-        <div className="d-flex gap-2 justify-content-center">
-          <Link to="/solicitud-en-curso" className="btn btn-primary">Ver Solicitudes</Link>
-          <Link to="/" className="btn btn-outline-secondary">Ir al Inicio</Link>
+        <div className="d-flex flex-column gap-2">
+          <Link to="/resultado" state={{ solicitud }} className="btn btn-success w-100">
+            Ver Resultado Final
+          </Link>
+          <Link to="/solicitud-en-curso" className="btn btn-outline-primary w-100">
+            Ver Solicitudes en Curso
+          </Link>
         </div>
       </div>
     </main>
