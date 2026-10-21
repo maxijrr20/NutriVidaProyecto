@@ -6,6 +6,8 @@ import { LoginPage } from './pages/LoginPage';
 import CategoriasPage from './pages/CategoriasPage';
 import DetalleServicioPage from './pages/DetalleServicioPage';
 import { ContactoPage } from './pages/ContactoPage';
+import CategoriaDetallePage from './pages/CategoriaDetallePage';
+import ServiciosDestacadosPage from './pages/ServiciosDestacadosPage';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/servicios/:id" element={<DetalleServicioPage />} />
           <Route path="/servicios" element={<ServiciosPage />} />
           <Route path="/contacto" element={<ContactoPage />} />
+          <Route path="/categorias/:categoria" element={<CategoriaDetallePage />} />
+          <Route path="/destacados" element={<ServiciosDestacadosPage />} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </MainLayout>
