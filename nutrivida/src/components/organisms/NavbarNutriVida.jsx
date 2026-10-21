@@ -4,35 +4,48 @@ export const NavbarNutriVida = () => {
   return (
     <header className="header-nutrivida">
       <h1>Clínica Nutricional NutriVida</h1>
+
       <nav>
         <ul>
           <li>
-            <NavLink 
-              to="/" 
+            <NavLink
+              to="/"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
               Inicio
             </NavLink>
           </li>
+
           <li>
-            <NavLink 
-              to="/servicios" 
+            <NavLink
+              to="/servicios"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
               Servicios y Equipo
             </NavLink>
           </li>
+
           <li>
-            <NavLink 
-              to="/contacto" 
+            <NavLink
+              to="/destacados"
+              className={({ isActive }) => (isActive ? 'activo' : '')}
+            >
+              Destacados
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/contacto"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
               Agendar Cita
             </NavLink>
           </li>
+
           <li>
-            <NavLink 
-              to="/login" 
+            <NavLink
+              to="/login"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
               Acceso
