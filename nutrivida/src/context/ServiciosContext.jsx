@@ -1,47 +1,38 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
+import serviciosIniciales from '../data/servicios.json';
 
-import {
-  listarServicios,
-  crearServicio,
-  actualizarServicio,
-  eliminarServicio
-} from '../services/serviciosService';
+export const ServiciosContext = createContext();
 
-const ServiciosContext = createContext();
+export const ServiciosProvider = ({ children }) => {
+  const [servicios, setServicios] = useState(() => {
+    const guardados = localStorage.getItem('nutrivida_servicios');
+    return guardados ? JSON.parse(guardados) : serviciosIniciales;
+  });
 
-export function ServiciosProvider({ children }) {
+  useEffect(() => {
+    localStorage.setItem('nutrivida_servicios', JSON.stringify(servicios));
+  }, [servicios]);
 
-  const [servicios, setServicios] = useState(() => listarServicios());
-
-  const agregarServicio = (nuevoServicio) => {
-    crearServicio(nuevoServicio);
-    setServicios([...listarServicios()]);
+  const agregarServicio = (nuevo) => {
+    const servicioConId = { ...nuevo, id: Date.now() };
+    setServicios((prev) => [...prev, servicioConId]);
   };
 
-  const editarServicio = (id, datosActualizados) => {
-    actualizarServicio(id, datosActualizados);
-    setServicios([...listarServicios()]);
+  const actualizarServicio = (id, actualizado) => {
+    setServicios((prev) =>
+      prev.map((s) => (s.id === Number(id) ? { ...s, ...actualizado } : s))
+    );
   };
 
-  const borrarServicio = (id) => {
-    eliminarServicio(id);
-    setServicios([...listarServicios()]);
+  const eliminarServicio = (id) => {
+    setServicios((prev) => prev.filter((s) => s.id !== Number(id)));
   };
 
   return (
     <ServiciosContext.Provider
-      value={{
-        servicios,
-        agregarServicio,
-        editarServicio,
-        eliminarServicio: borrarServicio
-      }}
+      value={{ servicios, agregarServicio, actualizarServicio, eliminarServicio }}
     >
       {children}
     </ServiciosContext.Provider>
   );
-}
-
-export function useServicios() {
-  return useContext(ServiciosContext);
-}
+};
