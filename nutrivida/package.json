@@ -9,6 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest",
+    "test:run": "vitest run",
+    "test:cov": "vitest run --coverage",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {

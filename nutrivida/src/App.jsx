@@ -14,6 +14,7 @@ import ServiciosDestacadosPage from './pages/ServiciosDestacadosPage';
 
 import ConfirmacionSolicitudPage from './pages/ConfirmacionSolicitudPage';
 import SolicitudEnCursoPage from './pages/SolicitudEnCursoPage';
+import ResultadoPage from './pages/ResultadoPage';
 
 function App() {
   return (
@@ -47,6 +48,8 @@ function App() {
             path="/solicitud-en-curso"
             element={<SolicitudEnCursoPage />}
           />
+
+          <Route path="/resultado" element={<ResultadoPage />} />
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />

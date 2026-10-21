@@ -1,36 +1,39 @@
+// "Base de datos" simulada de servicios.
+// Las funciones CRUD son puras: reciben la lista y devuelven una lista NUEVA
+// (no modifican la original). Así son fáciles de probar y React detecta el cambio.
 import serviciosIniciales from '../data/servicios.json';
 
-let servicios = [...serviciosIniciales];
+export const CLAVE_SERVICIOS = 'nutrivida_servicios';
 
+// READ: lee desde localStorage; si no hay nada (o está corrupto), usa los datos iniciales
 export const listarServicios = () => {
-  return servicios;
+  try {
+    const guardados = localStorage.getItem(CLAVE_SERVICIOS);
+    return guardados ? JSON.parse(guardados) : [...serviciosIniciales];
+  } catch {
+    return [...serviciosIniciales];
+  }
 };
 
-export const crearServicio = (nuevoServicio) => {
-  const servicio = {
-    ...nuevoServicio,
-    id: Date.now()
-  };
-
-  servicios.push(servicio);
-
-  return servicio;
+export const guardarServicios = (lista) => {
+  localStorage.setItem(CLAVE_SERVICIOS, JSON.stringify(lista));
 };
 
-export const actualizarServicio = (id, datosActualizados) => {
-  servicios = servicios.map((servicio) =>
-    servicio.id === id
-      ? { ...servicio, ...datosActualizados }
-      : servicio
+export const obtenerServicioPorId = (lista, id) =>
+  lista.find((servicio) => servicio.id === Number(id));
+
+// CREATE
+export const crearServicio = (lista, nuevoServicio) => [
+  ...lista,
+  { ...nuevoServicio, id: Date.now() }
+];
+
+// UPDATE
+export const actualizarServicio = (lista, id, datosActualizados) =>
+  lista.map((servicio) =>
+    servicio.id === Number(id) ? { ...servicio, ...datosActualizados } : servicio
   );
 
-  return servicios.find((servicio) => servicio.id === id);
-};
-
-export const eliminarServicio = (id) => {
-  servicios = servicios.filter(
-    (servicio) => servicio.id !== id
-  );
-
-  return servicios;
-};
+// DELETE
+export const eliminarServicio = (lista, id) =>
+  lista.filter((servicio) => servicio.id !== Number(id));

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { ServiceCard } from '../molecules/ServiceCard';
-import serviciosData from '../../data/servicios.json';
+import { useServicios } from '../../context/ServiciosContext';
 
 const CATEGORIAS = ['Todos', 'Consultas', 'Planes Especializados', 'Evaluaciones', 'Talleres'];
 
 export const ServicesCatalogSection = () => {
+  const { servicios: serviciosData } = useServicios();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todos');
 
   // Normalizador para comparar sin líos de mayúsculas ni tildes
