@@ -10,9 +10,11 @@ import CategoriasPage from './pages/CategoriasPage';
 import CategoriaDetallePage from './pages/CategoriaDetallePage';
 import DetalleServicioPage from './pages/DetalleServicioPage';
 import ServiciosDestacadosPage from './pages/ServiciosDestacadosPage';
+import RegistroPage from './pages/RegistroPage';
 
 import ConfirmacionSolicitudPage from './pages/ConfirmacionSolicitudPage';
 import SolicitudEnCursoPage from './pages/SolicitudEnCursoPage';
+import ResultadoPage from './pages/ResultadoPage';
 
 function App() {
   return (
@@ -47,7 +49,12 @@ function App() {
             element={<SolicitudEnCursoPage />}
           />
 
+          <Route path="/resultado" element={<ResultadoPage />} />
+
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegistroPage />} />
+
+          <Route path="*" element={<h2 className="p-5 text-center">404 - Página no encontrada</h2>} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
