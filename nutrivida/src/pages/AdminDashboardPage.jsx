@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import nutricionistasData from '../data/nutricionistas.json';
-import { ServiciosContext } from '../context/ServiciosContext';
+import { useServicios } from '../context/ServiciosContext';
 import { CitasContext } from '../context/CitasContext';
 
 const CLAVE_USUARIOS = 'nutrivida_usuarios_admin';
@@ -17,23 +17,12 @@ const leerUsuariosAdmin = () => {
   }
 };
 
-const serviciosInicialesMock = [
-  { id: 1, nombre: 'Primera consulta nutricional', categoria: 'Consultas', precio: 35000 },
-  { id: 2, nombre: 'Control nutricional quincenal', categoria: 'Consultas', precio: 20000 },
-  { id: 3, nombre: 'Plan nutrición deportiva (1 mes)', categoria: 'Planes', precio: 45000 }
-];
-
 export const AdminDashboardPage = () => {
   const [seccionActiva, setSeccionActiva] = useState('resumen');
 
-  const contextoServicios = useContext(ServiciosContext);
+  // Consumimos directamente la única fuente de la verdad a través del hook
+  const { servicios, agregarServicio, editarServicio, eliminarServicio } = useServicios();
   const contextoCitas = useContext(CitasContext);
-
-  const [serviciosLocal, setServiciosLocal] = useState(serviciosInicialesMock);
-
-  const servicios = contextoServicios && contextoServicios.servicios && contextoServicios.servicios.length > 0
-    ? contextoServicios.servicios
-    : serviciosLocal;
 
   const citas = contextoCitas && contextoCitas.citas ? contextoCitas.citas : [];
   const actualizarEstadoCita = contextoCitas ? contextoCitas.actualizarEstadoCita : null;
@@ -85,34 +74,23 @@ export const AdminDashboardPage = () => {
     if (e) e.preventDefault();
     if (!nuevoServicio.nombre.trim() || !nuevoServicio.precio) return;
     
-    const objNuevo = {
-      id: Date.now(),
-      nombre: nuevoServicio.nombre,
+    // Llamamos directamente a agregarServicio del contexto
+    agregarServicio({
+      nombre: nuevoServicio.nombre.trim(),
       categoria: nuevoServicio.categoria,
-      precio: Number(nuevoServicio.precio)
-    };
+      precio: Number(nuevoServicio.precio),
+      descripcion: 'Atención nutricional especializada y personalizada.'
+    });
 
-    if (contextoServicios && contextoServicios.setServicios) {
-      contextoServicios.setServicios([...servicios, objNuevo]);
-    }
-    
-    setServiciosLocal((prev) => [...prev, objNuevo]);
     setNuevoServicio({ nombre: '', categoria: 'Consultas', precio: '' });
   };
 
   const handleEliminarServicio = (id) => {
-    if (contextoServicios && contextoServicios.setServicios) {
-      contextoServicios.setServicios(servicios.filter((s) => s.id !== id));
-    }
-    setServiciosLocal((prev) => prev.filter((s) => s.id !== id));
+    eliminarServicio(id);
   };
 
   const handleGuardarEdicionServicio = (id) => {
-    const listaActualizada = servicios.map((s) => (s.id === id ? { ...s, precio: Number(precioEditado) } : s));
-    if (contextoServicios && contextoServicios.setServicios) {
-      contextoServicios.setServicios(listaActualizada);
-    }
-    setServiciosLocal(listaActualizada);
+    editarServicio(id, { precio: Number(precioEditado) });
     setEditandoId(null);
   };
 

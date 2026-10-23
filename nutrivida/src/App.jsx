@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { ServiciosPage } from './pages/ServiciosPage';
 import { LoginPage } from './pages/LoginPage';
 import { ContactoPage } from './pages/ContactoPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import CategoriasPage from './pages/CategoriasPage';
