@@ -5,9 +5,10 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 
-import servicios from '../data/servicios.json';
+import { useServicios } from '../context/ServiciosContext';
 
 function CategoriasPage() {
+  const { servicios } = useServicios();
   const categorias = [...new Set(servicios.map((servicio) => servicio.categoria))];
 
   return (

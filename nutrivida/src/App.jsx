@@ -5,16 +5,20 @@ import { HomePage } from './pages/HomePage';
 import { ServiciosPage } from './pages/ServiciosPage';
 import { LoginPage } from './pages/LoginPage';
 import { ContactoPage } from './pages/ContactoPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 import CategoriasPage from './pages/CategoriasPage';
 import CategoriaDetallePage from './pages/CategoriaDetallePage';
 import DetalleServicioPage from './pages/DetalleServicioPage';
 import ServiciosDestacadosPage from './pages/ServiciosDestacadosPage';
-import RegistroPage from './pages/RegistroPage';
 
 import ConfirmacionSolicitudPage from './pages/ConfirmacionSolicitudPage';
 import SolicitudEnCursoPage from './pages/SolicitudEnCursoPage';
 import ResultadoPage from './pages/ResultadoPage';
+import NosotrosPage from './pages/NosotrosPage';
+import BlogPage from './pages/BlogPage';
+import BlogDetallePage from './pages/BlogDetallePage';
+import RegistroPage from './pages/RegistroPage';
 
 function App() {
   return (
@@ -36,8 +40,13 @@ function App() {
             path="/destacados"
             element={<ServiciosDestacadosPage />}
           />
+          <Route path="/nosotros" element={<NosotrosPage />} />
 
           <Route path="/contacto" element={<ContactoPage />} />
+
+          <Route path="/blog" element={<BlogPage />} />
+
+          <Route path="/blog/:id" element={<BlogDetallePage />} />
 
           <Route
             path="/confirmacion-solicitud"
@@ -50,11 +59,10 @@ function App() {
           />
 
           <Route path="/resultado" element={<ResultadoPage />} />
-
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/registro" element={<RegistroPage />} />
 
-          <Route path="*" element={<h2 className="p-5 text-center">404 - Página no encontrada</h2>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>

@@ -1,12 +1,56 @@
-import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { CLAVE_SESION, obtenerSesion } from '../../utils/sesion';
 
 export const NavbarNutriVida = () => {
-  return (
-    <header className="header-nutrivida">
-      <h1>Clínica Nutricional NutriVida</h1>
+  const location = useLocation();
+  const [sesion, setSesion] = useState(() => obtenerSesion());
 
-      <nav>
-        <ul>
+  useEffect(() => {
+    setSesion(obtenerSesion());
+  }, [location.pathname]);
+
+  const cerrarSesion = () => {
+    localStorage.removeItem(CLAVE_SESION);
+    setSesion(null);
+  };
+
+  return (
+    <header
+      className="header-nutrivida"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1rem',
+        flexWrap: 'wrap',
+        padding: '1rem 2rem',
+        backgroundColor: '#ffffff',
+      }}
+    >
+      <h1
+        style={{
+          fontSize: '1.5rem',
+          margin: 0,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Clínica Nutricional NutriVida
+      </h1>
+
+      <nav style={{ flex: 1 }}>
+        <ul
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+          }}
+        >
           <li>
             <NavLink
               to="/"
@@ -36,6 +80,33 @@ export const NavbarNutriVida = () => {
 
           <li>
             <NavLink
+              to="/categorias"
+              className={({ isActive }) => (isActive ? 'activo' : '')}
+            >
+              Categorías
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/nosotros"
+              className={({ isActive }) => (isActive ? 'activo' : '')}
+            >
+              Nosotros
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/blog"
+              className={({ isActive }) => (isActive ? 'activo' : '')}
+            >
+              Blog
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
               to="/contacto"
               className={({ isActive }) => (isActive ? 'activo' : '')}
             >
@@ -43,14 +114,36 @@ export const NavbarNutriVida = () => {
             </NavLink>
           </li>
 
-          <li>
-            <NavLink
-              to="/login"
-              className={({ isActive }) => (isActive ? 'activo' : '')}
-            >
-              Acceso
-            </NavLink>
-          </li>
+          {sesion && (
+            <li>
+              <NavLink
+                to="/solicitud-en-curso"
+                className={({ isActive }) => (isActive ? 'activo' : '')}
+              >
+                Mis Solicitudes
+              </NavLink>
+            </li>
+          )}
+
+          {!sesion ? (
+            <li>
+              <NavLink
+                to="/login"
+                className={({ isActive }) => (isActive ? 'activo' : '')}
+              >
+                Acceso
+              </NavLink>
+            </li>
+          ) : (
+            <li>
+              <NavLink
+                to="/login"
+                onClick={cerrarSesion}
+              >
+                Cerrar sesión
+              </NavLink>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import imgConsulta from '../../assets/consulta-nutricion.png';
 import nutricionistasData from '../../data/nutricionistas.json';
-import serviciosData from '../../data/servicios.json';
 import { validarCampo } from '../../utils/validaciones';
+import { useServicios } from '../../context/ServiciosContext';
+import { useCitas } from '../../context/CitasContext';
+import { obtenerSesion } from '../../utils/sesion';
 
 // Bloques cada 30 minutos según la jornada laboral de cada nutricionista en el Excel oficial:
 const HORARIOS_POR_CODIGO = {
@@ -33,21 +36,29 @@ const HORARIOS_POR_CODIGO = {
 };
 
 export const AppointmentFormSection = () => {
-  const [formData, setFormData] = useState({
-    nombreCompleto: '',
-    rut: '',
-    email: '',
+  const navigate = useNavigate();
+  const { servicios: serviciosData } = useServicios();
+  const { agregarCita } = useCitas();
+
+  // Si el usuario inició sesión, sus datos se completan solos
+  const [formData, setFormData] = useState(() => {
+    const sesion = obtenerSesion();
+    const rutSesion = sesion?.rut && !sesion.rut.includes('@') ? sesion.rut : '';
+    return {
+    nombreCompleto: sesion?.nombre || '',
+    rut: rutSesion,
+    email: sesion?.email || '',
     telefono: '',
     servicioId: serviciosData[0]?.id || '',
     nutricionistaCodigo: nutricionistasData[0]?.codigo || 'NUT001',
     fecha: '',
     hora: '',
     motivo: ''
+    };
   });
 
   const [errores, setErrores] = useState({});
   const [tocado, setTocado] = useState({});
-  const [enviado, setEnviado] = useState(false);
 
   // Fecha mínima: a partir de mañana
   const manana = new Date();
@@ -108,54 +119,26 @@ export const AppointmentFormSection = () => {
     });
 
     if (Object.keys(nuevosErrores).length === 0) {
-      setEnviado(true);
+      // Se guarda la solicitud (CitasContext -> localStorage) y se pasa a la confirmación
+      const cita = agregarCita({
+        nombre: formData.nombreCompleto,
+        rut: formData.rut,
+        email: formData.email,
+        telefono: formData.telefono,
+        servicio: servicioSeleccionado?.nombre,
+        precio: servicioSeleccionado?.precio,
+        nutricionistaCodigo: formData.nutricionistaCodigo,
+        nutricionista: nutricionistaSeleccionado?.nombre,
+        fecha: formData.fecha,
+        hora: formData.hora,
+        motivo: formData.motivo
+      });
+      navigate('/confirmacion-solicitud', { state: { solicitud: cita } });
     }
   };
 
   return (
     <section className="formulario-agendamiento-contenedor shadow-sm">
-      {enviado ? (
-        <div className="mensaje-confirmacion text-center p-5">
-          <div className="icono-exito mb-3">✓</div>
-          <h3 className="text-success mb-2">¡Solicitud de Cita Registrada!</h3>
-          <p className="lead mb-4">
-            Hemos recibido tu solicitud para <strong>{formData.nombreCompleto}</strong>.
-          </p>
-          <div className="resumen-tarjeta text-start mx-auto p-4 mb-4">
-            <p><strong>RUT:</strong> {formData.rut}</p>
-            <p><strong>Servicio:</strong> {servicioSeleccionado?.nombre}</p>
-            <p><strong>Modalidad:</strong> {servicioSeleccionado?.modalidad} ({servicioSeleccionado?.duracion})</p>
-            <p><strong>Valor estimado:</strong> ${servicioSeleccionado?.precio?.toLocaleString('es-CL')} CLP</p>
-            <p><strong>Especialista:</strong> {nutricionistaSeleccionado?.nombre}</p>
-            <p><strong>Fecha preferente:</strong> {formData.fecha} a las {formData.hora} hrs</p>
-            <p className="text-muted small mb-0">
-              * Confirmaremos la hora vía WhatsApp al <strong>{formData.telefono}</strong> o correo <strong>{formData.email}</strong>.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="btn btn-outline-success"
-            onClick={() => {
-              setEnviado(false);
-              setFormData({
-                nombreCompleto: '',
-                rut: '',
-                email: '',
-                telefono: '',
-                servicioId: serviciosData[0]?.id || '',
-                nutricionistaCodigo: nutricionistasData[0]?.codigo || 'NUT001',
-                fecha: '',
-                hora: '',
-                motivo: ''
-              });
-              setErrores({});
-              setTocado({});
-            }}
-          >
-            Agendar otra consulta
-          </button>
-        </div>
-      ) : (
         <div className="row g-0 agendamiento-card-layout">
           {/* Columna Izquierda: Banner con la Imagen de Consulta */}
           <div className="col-12 col-lg-5 agendamiento-banner d-flex flex-column justify-content-between p-4 p-md-5">
@@ -366,7 +349,6 @@ export const AppointmentFormSection = () => {
             </form>
           </div>
         </div>
-      )}
     </section>
   );
 };

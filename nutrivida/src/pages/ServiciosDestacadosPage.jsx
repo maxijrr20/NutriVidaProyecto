@@ -5,9 +5,10 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 
-import servicios from '../data/servicios.json';
+import { useServicios } from '../context/ServiciosContext';
 
 function ServiciosDestacadosPage() {
+  const { servicios } = useServicios();
   const serviciosDestacados = servicios.slice(0, 3);
 
   return (

@@ -5,9 +5,10 @@ import Card from 'react-bootstrap/Card';
 import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 
-import servicios from '../data/servicios.json';
+import { useServicios } from '../context/ServiciosContext';
 
 function DetalleServicioPage() {
+  const { servicios } = useServicios();
   const { id } = useParams();
 
   const servicio = servicios.find(

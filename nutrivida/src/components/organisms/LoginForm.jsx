@@ -3,6 +3,10 @@ import { Form } from 'react-bootstrap';
 import { FormField } from '../molecules/FormField';
 import { Button } from '../atoms/Button';
 
+/**
+ * Organismo para el formulario de inicio de sesión.
+ * Soporta ingreso por correo electrónico, RUT o nombre de usuario administrativo.
+ */
 export const LoginForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     email: '',
@@ -27,9 +31,9 @@ export const LoginForm = ({ onSubmit }) => {
     <Form onSubmit={handleSubmit} className="p-4 border rounded shadow-sm bg-white">
       <h3 className="mb-4 text-center text-success">Iniciar Sesión</h3>
       <FormField
-        label="Correo Electrónico"
-        type="email"
-        placeholder="ejemplo@nutrivida.cl"
+        label="Correo, RUT o Usuario"
+        type="text"
+        placeholder="ejemplo@nutrivida.cl o admin"
         name="email"
         value={formData.email}
         onChange={handleChange}
