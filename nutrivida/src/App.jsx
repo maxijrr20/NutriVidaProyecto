@@ -18,6 +18,7 @@ import ResultadoPage from './pages/ResultadoPage';
 import NosotrosPage from './pages/NosotrosPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetallePage from './pages/BlogDetallePage';
+import RegistroPage from './pages/RegistroPage';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           />
 
           <Route path="/resultado" element={<ResultadoPage />} />
+          <Route path="/registro" element={<RegistroPage />} />
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
