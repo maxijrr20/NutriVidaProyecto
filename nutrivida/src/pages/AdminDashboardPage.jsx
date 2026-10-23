@@ -20,12 +20,40 @@ const leerUsuariosAdmin = () => {
 export const AdminDashboardPage = () => {
   const [seccionActiva, setSeccionActiva] = useState('resumen');
 
-  // Consumimos directamente la única fuente de la verdad a través del hook
+  // Hook del catálogo de servicios
   const { servicios, agregarServicio, editarServicio, eliminarServicio } = useServicios();
+  
+  // Contexto de Citas
   const contextoCitas = useContext(CitasContext);
 
-  const citas = contextoCitas && contextoCitas.citas ? contextoCitas.citas : [];
-  const actualizarEstadoCita = contextoCitas ? contextoCitas.actualizarEstadoCita : null;
+  // Estado local para Citas con respaldo en localStorage para la confirmación rápida
+  const [citasLocales, setCitasLocales] = useState(() => {
+    try {
+      const guardadas = localStorage.getItem('nutrivida_citas');
+      if (guardadas) return JSON.parse(guardadas);
+    } catch {}
+    return contextoCitas && contextoCitas.citas ? contextoCitas.citas : [];
+  });
+
+  useEffect(() => {
+    if (contextoCitas && Array.isArray(contextoCitas.citas) && contextoCitas.citas.length > 0) {
+      setCitasLocales(contextoCitas.citas);
+    }
+  }, [contextoCitas?.citas]);
+
+  const handleConfirmarCita = (id) => {
+    const listaActualizada = citasLocales.map((c) =>
+      c.id === id ? { ...c, estado: 'Confirmada' } : c
+    );
+    setCitasLocales(listaActualizada);
+    localStorage.setItem('nutrivida_citas', JSON.stringify(listaActualizada));
+
+    if (contextoCitas && typeof contextoCitas.actualizarEstadoCita === 'function') {
+      contextoCitas.actualizarEstadoCita(id, 'Confirmada');
+    } else if (contextoCitas && typeof contextoCitas.setCitas === 'function') {
+      contextoCitas.setCitas(listaActualizada);
+    }
+  };
 
   const [editandoId, setEditandoId] = useState(null);
   const [precioEditado, setPrecioEditado] = useState('');
@@ -60,21 +88,20 @@ export const AdminDashboardPage = () => {
     setUsuariosAdmin((prev) => prev.filter((u) => u.id !== id));
   };
 
-  const historialPorUsuario = (citas || []).reduce((acc, cita) => {
-    const clave = cita.email || cita.rut || 'Sin identificar';
+  const historialPorUsuario = (citasLocales || []).reduce((acc, cita) => {
+    const clave = cita.email || cita.rut || cita.nombre || 'Sin identificar';
     if (!acc[clave]) acc[clave] = [];
     acc[clave].push(cita);
     return acc;
   }, {});
 
-  const totalConfirmadas = (citas || []).filter((c) => c.estado === 'Confirmada').length;
-  const totalCanceladas = (citas || []).filter((c) => c.estado === 'Cancelada').length;
+  const totalConfirmadas = (citasLocales || []).filter((c) => c.estado === 'Confirmada').length;
+  const totalCanceladas = (citasLocales || []).filter((c) => c.estado === 'Cancelada').length;
 
   const handleAgregarServicio = (e) => {
     if (e) e.preventDefault();
     if (!nuevoServicio.nombre.trim() || !nuevoServicio.precio) return;
     
-    // Llamamos directamente a agregarServicio del contexto
     agregarServicio({
       nombre: nuevoServicio.nombre.trim(),
       categoria: nuevoServicio.categoria,
@@ -134,7 +161,7 @@ export const AdminDashboardPage = () => {
               <h3 className="fw-bold mb-3">Resumen de la Clínica NutriVida</h3>
               <div className="row g-3">
                 <div className="col-12 col-sm-4"><div className="p-3 bg-light rounded border text-center"><h4 className="fw-bold text-success">{servicios.length}</h4><p className="text-muted small mb-0">Servicios Activos</p></div></div>
-                <div className="col-12 col-sm-4"><div className="p-3 bg-light rounded border text-center"><h4 className="fw-bold text-primary">{citas.length}</h4><p className="text-muted small mb-0">Solicitudes Totales</p></div></div>
+                <div className="col-12 col-sm-4"><div className="p-3 bg-light rounded border text-center"><h4 className="fw-bold text-primary">{citasLocales.length}</h4><p className="text-muted small mb-0">Solicitudes Totales</p></div></div>
                 <div className="col-12 col-sm-4"><div className="p-3 bg-light rounded border text-center"><h4 className="fw-bold text-info">{(nutricionistasData || []).length}</h4><p className="text-muted small mb-0">Nutricionistas</p></div></div>
               </div>
             </div>
@@ -143,24 +170,39 @@ export const AdminDashboardPage = () => {
           {seccionActiva === 'solicitudes' && (
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-3">Gestión de Solicitudes y Citas</h3>
-              {citas.length === 0 ? (
+              {citasLocales.length === 0 ? (
                 <p className="text-muted">No hay solicitudes registradas.</p>
               ) : (
                 <div className="table-responsive">
                   <table className="table table-striped align-middle">
                     <thead>
-                      <tr><th>Paciente</th><th>Servicio</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr>
+                      <tr>
+                        <th>Paciente</th>
+                        <th>Servicio</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                      </tr>
                     </thead>
                     <tbody>
-                      {citas.map((c) => (
+                      {citasLocales.map((c) => (
                         <tr key={c.id}>
-                          <td>{c.nombre || c.email || 'Paciente'}</td>
+                          <td>{c.nombre || c.paciente || c.email || 'Paciente'}</td>
                           <td>{c.servicio || 'Consulta nutricional'}</td>
                           <td>{c.fecha}</td>
-                          <td><span className={`badge ${colorEstado(c.estado)}`}>{c.estado}</span></td>
                           <td>
-                            {actualizarEstadoCita && (
-                              <button className="btn btn-sm btn-outline-success me-1" onClick={() => actualizarEstadoCita(c.id, 'Confirmada')}>Confirmar</button>
+                            <span className={`badge ${colorEstado(c.estado)}`}>
+                              {c.estado}
+                            </span>
+                          </td>
+                          <td>
+                            {c.estado !== 'Confirmada' && (
+                              <button
+                                className="btn btn-sm btn-success me-1"
+                                onClick={() => handleConfirmarCita(c.id)}
+                              >
+                                Confirmar
+                              </button>
                             )}
                           </td>
                         </tr>
@@ -182,7 +224,7 @@ export const AdminDashboardPage = () => {
                 <div className="col-12 col-md-3">
                   <select className="form-select form-select-sm" value={nuevoServicio.categoria} onChange={(e) => setNuevoServicio({ ...nuevoServicio, categoria: e.target.value })}>
                     <option value="Consultas">Consultas</option>
-                    <option value="Planes">Planes</option>
+                    <option value="Planes Especializados">Planes Especializados</option>
                     <option value="Evaluaciones">Evaluaciones</option>
                     <option value="Talleres">Talleres</option>
                   </select>
@@ -207,9 +249,9 @@ export const AdminDashboardPage = () => {
                         <td>{s.categoria}</td>
                         <td>
                           {editandoId === s.id ? (
-                            <input type="number" className="form-control form-control-sm" placeholder="Precio Edicion" value={precioEditado} onChange={(e) => setPrecioEditado(e.target.value)} />
+                            <input type="number" className="form-control form-control-sm" placeholder="Precio Edición" value={precioEditado} onChange={(e) => setPrecioEditado(e.target.value)} />
                           ) : (
-                            `${Number(s.precio).toLocaleString('de-DE')}`
+                            `$${Number(s.precio).toLocaleString('de-DE')} CLP`
                           )}
                         </td>
                         <td>
@@ -336,7 +378,7 @@ export const AdminDashboardPage = () => {
             <div className="card shadow-sm p-4">
               <h3 className="fw-bold mb-4">Reportes y Perfil</h3>
               <div className="row g-3 mb-4">
-                <div className="col-md-4"><div className="border rounded p-3 text-center"><strong>{citas.length}</strong><br/>Total solicitudes</div></div>
+                <div className="col-md-4"><div className="border rounded p-3 text-center"><strong>{citasLocales.length}</strong><br/>Total solicitudes</div></div>
                 <div className="col-md-4"><div className="border rounded p-3 text-center"><strong>{totalConfirmadas}</strong><br/>Confirmadas</div></div>
                 <div className="col-md-4"><div className="border rounded p-3 text-center"><strong>{totalCanceladas}</strong><br/>Canceladas</div></div>
               </div>
