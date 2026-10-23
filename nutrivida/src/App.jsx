@@ -56,6 +56,14 @@ function App() {
             path="/solicitud-en-curso"
             element={<SolicitudEnCursoPage />}
           />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+               <AdminDashboardPage />
+              </ProtectedRoute>
+            } 
+          />  
 
           <Route path="/resultado" element={<ResultadoPage />} />
 
