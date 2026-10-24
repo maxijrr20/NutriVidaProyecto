@@ -7,7 +7,7 @@
 ## Integrantes
 
 - Maximiliano Andrés Valenzuela Barrera - max.valenzuelab@duocuc.cl
-- Genesis Cerda - gcerda@duocuc.cl
+- Genesis Cerda - gene.cerda@duocuc.cl
 - Yoximar Ruiz - yox.ruiz@duocuc.cl
 
 ---
