@@ -6,6 +6,7 @@ import {
   actualizarServicio,
   eliminarServicio
 } from '../services/serviciosService';
+import { renombrarCategoriaEnServicios } from '../services/categoriasService';
 
 export const ServiciosContext = createContext(null);
 
@@ -22,10 +23,18 @@ export const ServiciosProvider = ({ children }) => {
   const agregarServicio = (nuevo) => setServicios((prev) => crearServicio(prev, nuevo));
   const editarServicio = (id, datos) => setServicios((prev) => actualizarServicio(prev, id, datos));
   const borrarServicio = (id) => setServicios((prev) => eliminarServicio(prev, id));
+  const renombrarCategoria = (anterior, nueva) =>
+    setServicios((prev) => renombrarCategoriaEnServicios(prev, anterior, nueva));
 
   return (
     <ServiciosContext.Provider
-      value={{ servicios, agregarServicio, editarServicio, eliminarServicio: borrarServicio }}
+      value={{
+        servicios,
+        agregarServicio,
+        editarServicio,
+        eliminarServicio: borrarServicio,
+        renombrarCategoria
+      }}
     >
       {children}
     </ServiciosContext.Provider>

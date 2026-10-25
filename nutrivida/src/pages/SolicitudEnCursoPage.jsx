@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useCitas } from '../context/CitasContext';
 import { obtenerSesion } from '../utils/sesion';
+import { EstadoBadge } from '../components/atoms/EstadoBadge';
 
 export default function SolicitudEnCursoPage() {
   // Las solicitudes vienen del CitasContext
@@ -128,19 +129,7 @@ export default function SolicitudEnCursoPage() {
                         Solicitud #{sol.id}
                       </h5>
 
-                      <span
-                        className={`badge ${
-                          sol.estado === 'Cancelada'
-                            ? 'bg-danger'
-                            : sol.estado === 'Reprogramada'
-                              ? 'bg-info text-dark'
-                              : sol.estado === 'Confirmada'
-                                ? 'bg-success'
-                                : 'bg-warning text-dark'
-                        }`}
-                      >
-                        {sol.estado || 'Pendiente'}
-                      </span>
+                      <EstadoBadge estado={sol.estado || 'Pendiente'} />
                     </div>
 
                     <p className="card-text mb-1">
@@ -180,7 +169,7 @@ export default function SolicitudEnCursoPage() {
                       Ver Detalle
                     </Link>
 
-                    {sol.estado !== 'Cancelada' && (
+                    {sol.estado !== 'Cancelada' && sol.estado !== 'Rechazada' && (
                       <>
                         <button
                           type="button"
