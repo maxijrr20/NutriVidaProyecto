@@ -35,6 +35,7 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 ### Sitio público
 
 - Página de inicio.
+- Menú de navegación responsive (Bootstrap Navbar): en móvil y tableta se colapsa en un botón.
 - Catálogo de servicios nutricionales con buscador por texto y filtro por categoría.
 - Visualización del detalle de cada servicio.
 - Servicios organizados por categorías.
@@ -43,6 +44,7 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 - Blog con al menos dos publicaciones y vista de detalle.
 - Información de contacto.
 - Información del equipo de nutricionistas.
+- Página 404 para direcciones que no existen.
 
 ### Registro e inicio de sesión
 
@@ -65,6 +67,8 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 - Selección de fecha y horario.
 - Validación de datos del paciente.
 - Confirmación de solicitud.
+- Pantalla de resultado **exitoso** (número de solicitud, resumen y valor) o **con error** (aviso claro y botón "Volver a intentarlo").
+- Control de disponibilidad: no se puede agendar con un nutricionista en una fecha y hora que ya tiene otra cita activa (las citas canceladas o rechazadas liberan el horario).
 - Consulta de solicitudes realizadas por el paciente.
 - Reprogramación de citas.
 - Cancelación de citas.
@@ -97,12 +101,13 @@ NutriVidaProyecto/
     │   │   ├── atoms/
     │   │   ├── molecules/
     │   │   ├── organisms/
+    │   │   │   └── admin/      # una sección del panel por componente
     │   │   └── templates/
-    │   ├── context/
-    │   ├── data/
-    │   ├── pages/
-    │   ├── services/
-    │   ├── utils/
+    │   ├── context/        # ServiciosContext y CitasContext (estado compartido)
+    │   ├── data/           # servicios.json y nutricionistas.json (datos del Excel del caso)
+    │   ├── pages/          # una página por ruta
+    │   ├── services/       # "base de datos" simulada: CRUD de servicios, usuarios y categorías
+    │   ├── utils/          # validaciones, sesión, filtros y disponibilidad (funciones puras)
     │   ├── App.jsx
     │   └── main.jsx
     ├── package.json
@@ -110,6 +115,18 @@ NutriVidaProyecto/
 ```
 
 Esta estructura permite separar las responsabilidades del sistema y facilita la reutilización, mantenimiento y prueba de los componentes.
+
+### Niveles de Atomic Design
+
+| Nivel | Ejemplos |
+|---|---|
+| Átomos | `Button`, `Input`, `Price`, `EstadoBadge` |
+| Moléculas | `ServiceCard`, `FormField`, `NutritionistRow`, `StatCard` |
+| Organismos | `NavbarNutriVida`, `AppointmentFormSection`, `ServicesCatalogSection`, `admin/AdminServicios`, `admin/AdminSolicitudes` |
+| Templates | `MainLayout` |
+| Páginas | `HomePage`, `ServiciosPage`, `ContactoPage`, `AdminDashboardPage`, `ResultadoPage` |
+
+El estado compartido (catálogo y solicitudes de cita) vive en `ServiciosContext` y `CitasContext`. Las páginas lo leen con `useServicios()` y `useCitas()` y lo reparten a los componentes por **props**.
 
 ---
 
@@ -141,10 +158,15 @@ La información dinámica se almacena utilizando `localStorage` del navegador.
 
 Entre los datos almacenados se encuentran:
 
-- Usuarios registrados.
-- Sesión del usuario.
-- Solicitudes de citas.
-- Información modificada desde algunos módulos administrativos.
+| Clave en `localStorage` | Contenido |
+|---|---|
+| `nutrivida_servicios` | Catálogo de servicios (CRUD del admin) |
+| `nutrivida_citas` | Solicitudes de cita y su estado |
+| `nutrivida_usuarios` | Usuarios registrados o creados por el admin |
+| `nutrivida_categorias` | Categorías creadas por el admin |
+| `nutrivida_session` | Usuario con sesión iniciada |
+
+Si no hay nada guardado, el catálogo se carga desde `src/data/servicios.json` (datos del Excel del caso).
 
 Esta implementación corresponde a la etapa actual del desarrollo y permite simular la persistencia de información sin utilizar todavía una base de datos externa.
 
@@ -226,7 +248,15 @@ Actualmente, la suite cuenta con:
 13 pruebas unitarias
 ```
 
-Las pruebas consideran distintas funcionalidades del sistema, incluyendo formularios, validaciones, servicios, categorías, solicitudes de citas y funcionalidades administrativas.
+| Archivo | Pruebas | Qué verifica |
+|---|---|---|
+| `utils/validaciones.test.js` | 2 | RUT (módulo 11) y correo |
+| `services/serviciosService.test.js` | 3 | Leer, crear y eliminar servicios |
+| `components/organisms/AppointmentFormSection.test.jsx` | 2 | Errores con formulario vacío; guardado y redirección con datos válidos |
+| `pages/AdminDashboardPage.test.jsx` | 2 | Menú del panel; confirmar una cita |
+| `pages/SolicitudEnCursoPage.test.jsx` | 2 | Sin solicitudes; lista del paciente |
+| `pages/CategoriasPage.test.jsx` | 1 | Servicios por categoría |
+| `pages/DetalleServicioPage.test.jsx` | 1 | Datos de un servicio |
 
 Se usan mocks (`vi.fn`, `vi.mock`, `vi.spyOn`) para simular la navegación (`useNavigate`) y `Date.now`.
 La configuración del entorno está en `vite.config.js` (bloque `test`) y en `src/setupTests.js` (jest-dom + limpieza con `afterEach`).
@@ -319,6 +349,7 @@ Abrir en el navegador la URL local indicada en la terminal (por defecto: http://
 ## ENLACE GOOGLE DRIVE CON ERS
 
 https://drive.google.com/drive/folders/1ncapMCk5xU48v4hHfm7bWwrtKheoQHpF?usp=drive_link
+
 
 
 
