@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 
+  // Ruta base requerida para GitHub Pages
+  base: '/NutriVidaProyecto/',
+
   // Configuración de Vitest (entorno de pruebas)
   test: {
     environment: 'jsdom', // simula el navegador (document, window, localStorage)

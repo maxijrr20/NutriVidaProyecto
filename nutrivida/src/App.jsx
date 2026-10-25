@@ -26,7 +26,7 @@ import NoEncontradoPage from './pages/NoEncontradoPage';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/NutriVidaProyecto">
       <MainLayout>
         <Routes>
 
