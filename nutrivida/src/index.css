@@ -540,3 +540,34 @@ main {
   border-radius: 12px;
   max-width: 480px;
 }
+/* ===== Navbar responsive (react-bootstrap) ===== */
+.navbar-nutrivida {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.navbar-nutrivida .marca-nutrivida {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0ea82f;
+  padding: 0;
+  white-space: normal;
+}
+
+.navbar-nutrivida .marca-nutrivida:hover {
+  background-color: transparent;
+}
+
+/* En pantallas pequeñas el menú se despliega en columna, con enlaces a lo ancho */
+@media (max-width: 991.98px) {
+  .navbar-nutrivida .marca-nutrivida {
+    font-size: 1.15rem;
+    max-width: 75%;
+  }
+
+  .navbar-nutrivida .nav-link {
+    width: 100%;
+    margin-top: 4px;
+  }
+}

@@ -5,7 +5,6 @@ import { HomePage } from './pages/HomePage';
 import { ServiciosPage } from './pages/ServiciosPage';
 import { LoginPage } from './pages/LoginPage';
 import { ContactoPage } from './pages/ContactoPage';
-import ProtectedRoute from './components/ProtectedRoute';
 
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import CategoriasPage from './pages/CategoriasPage';
@@ -23,6 +22,7 @@ import BlogDetallePage from './pages/BlogDetallePage';
 import RegistroPage from './pages/RegistroPage';
 
 import RutaAdmin from './components/RutaAdmin';
+import NoEncontradoPage from './pages/NoEncontradoPage';
 
 function App() {
   return (
@@ -96,15 +96,6 @@ function App() {
             path="/solicitud-en-curso"
             element={<SolicitudEnCursoPage />}
           />
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
-               <AdminDashboardPage />
-              </ProtectedRoute>
-            } 
-          />  
-
           <Route
             path="/resultado"
             element={<ResultadoPage />}
@@ -130,6 +121,9 @@ function App() {
               </RutaAdmin>
             }
           />
+
+          {/* Cualquier otra URL */}
+          <Route path="*" element={<NoEncontradoPage />} />
 
         </Routes>
       </MainLayout>
