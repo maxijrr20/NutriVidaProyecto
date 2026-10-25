@@ -35,7 +35,7 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 ### Sitio público
 
 - Página de inicio.
-- Catálogo de servicios nutricionales.
+- Catálogo de servicios nutricionales con buscador por texto y filtro por categoría.
 - Visualización del detalle de cada servicio.
 - Servicios organizados por categorías.
 - Servicios destacados.
@@ -72,15 +72,15 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 
 ### Administración
 
-- Panel de administración.
-- Acceso protegido exclusivamente para usuarios con rol administrador.
-- Dashboard con información general.
-- Gestión de solicitudes de citas.
-- Gestión del catálogo de servicios.
-- Creación de servicios.
-- Edición de servicios.
-- Eliminación de servicios.
-- Visualización de nutricionistas y usuarios.
+- Panel de administración (acceso protegido solo para rol ADMIN, enlace "Panel Admin" en el menú).
+- Dashboard con resumen de solicitudes, catálogo y usuarios, con accesos a cada módulo.
+- Solicitudes: listado filtrable por estado, ficha/comprobante de cada solicitud, confirmar o rechazar.
+- Catálogo: CRUD completo (crear, ver, editar todos los campos y eliminar con confirmación).
+- Ítems críticos: nutricionistas con disponibilidad acotada y sus citas activas.
+- Categorías: crear y renombrar (el cambio se aplica a todos sus servicios).
+- Usuarios: crear, listar, editar y eliminar (misma lista que usa el Registro y el Login).
+- Historial de solicitudes de un usuario.
+- Reportes (totales por estado, ingresos confirmados, servicio más solicitado) y perfil del administrador.
 
 ---
 
@@ -222,11 +222,14 @@ npm.cmd run test:run
 Actualmente, la suite cuenta con:
 
 ```text
-10 archivos de prueba aprobados
-26 pruebas aprobadas
+7 archivos de prueba
+13 pruebas unitarias
 ```
 
 Las pruebas consideran distintas funcionalidades del sistema, incluyendo formularios, validaciones, servicios, categorías, solicitudes de citas y funcionalidades administrativas.
+
+Se usan mocks (`vi.fn`, `vi.mock`, `vi.spyOn`) para simular la navegación (`useNavigate`) y `Date.now`.
+La configuración del entorno está en `vite.config.js` (bloque `test`) y en `src/setupTests.js` (jest-dom + limpieza con `afterEach`).
 
 ---
 
@@ -244,7 +247,7 @@ En Windows:
 npm.cmd run test:cov
 ```
 
-Entre los componentes evaluados se encuentra `ContactoPage.jsx`, que alcanza el nivel de cobertura establecido para el proyecto.
+El reporte se muestra en la terminal y en formato HTML en `nutrivida/coverage/index.html` (esta carpeta no se sube al repositorio).
 
 ---
 
@@ -310,7 +313,6 @@ La aplicación se encuentra en una etapa funcional de desarrollo frontend.
 
 Actualmente se encuentran operativos los principales flujos de navegación, registro, autenticación, catálogo, solicitudes de citas, gestión de citas y administración.
 
-Antes de la entrega final se realizará una revisión general de integración, documentación, pruebas automatizadas y funcionalidades administrativas.
 
 Abrir en el navegador la URL local indicada en la terminal (por defecto: http://localhost:5173).
 

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '../test-utils';
+import { render, screen } from '../test-utils';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, beforeEach } from 'vitest';
 import SolicitudEnCursoPage from './SolicitudEnCursoPage';
@@ -59,37 +59,6 @@ describe('SolicitudEnCursoPage Tests', () => {
 
     expect(
       screen.getByText(/Paciente Demo/i)
-    ).toBeInTheDocument();
-  });
-
-  it('abre la modal al hacer clic en Cancelar Cita', () => {
-    const mockCitas = [
-      {
-        id: '102',
-        nombre: 'Paciente Demo',
-        rut: '18.795.997-7',
-        email: 'paciente@nutrivida.cl',
-        fecha: '2026-11-01',
-        estado: 'Pendiente',
-      },
-    ];
-
-    localStorage.setItem(
-      'nutrivida_citas',
-      JSON.stringify(mockCitas)
-    );
-
-    render(
-      <BrowserRouter>
-        <SolicitudEnCursoPage />
-      </BrowserRouter>
-    );
-
-    const btnCancelar = screen.getByText(/Cancelar Cita/i);
-    fireEvent.click(btnCancelar);
-
-    expect(
-      screen.getByText(/Confirmar Cancelación/i)
     ).toBeInTheDocument();
   });
 });

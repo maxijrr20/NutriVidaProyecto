@@ -1,29 +1,23 @@
 import React, { useState } from 'react';
 import { ServiceCard } from '../molecules/ServiceCard';
 import { useServicios } from '../../context/ServiciosContext';
+import { filtrarServicios } from '../../utils/filtros';
 
-const CATEGORIAS = ['Todos', 'Consultas', 'Planes Especializados', 'Evaluaciones', 'Talleres'];
-
+// Organismo: catálogo con buscador por texto + filtro por categoría.
 export const ServicesCatalogSection = () => {
   const { servicios: serviciosData } = useServicios();
+
+  // Estado local: lo que el usuario eligió para filtrar
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todos');
+  const [busqueda, setBusqueda] = useState('');
 
-  // Normalizador para comparar sin líos de mayúsculas ni tildes
-  const normalizar = (texto = '') =>
-    texto
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
+  // Las categorías salen de los datos: si el admin crea una nueva, aparece aquí sola
+  const categorias = ['Todos', ...new Set(serviciosData.map((s) => s.categoria).filter(Boolean))];
 
-  // Filtrado robusto
-  const serviciosFiltrados = categoriaSeleccionada === 'Todos'
-    ? serviciosData
-    : serviciosData.filter((item) => {
-        const catItem = normalizar(item.categoria || item.tipo || '');
-        const catBoton = normalizar(categoriaSeleccionada);
-        return catItem.includes(catBoton) || catBoton.includes(catItem);
-      });
+  const serviciosFiltrados = filtrarServicios(serviciosData, {
+    categoria: categoriaSeleccionada,
+    texto: busqueda,
+  });
 
   return (
     <section className="catalogo-servicios-seccion mb-5">
@@ -34,9 +28,26 @@ export const ServicesCatalogSection = () => {
         </p>
       </div>
 
+      {/* Buscador por texto (nombre o descripción) */}
+      <div className="row justify-content-center mb-3 px-3">
+        <div className="col-12 col-md-8 col-lg-6">
+          <label htmlFor="buscador-servicios" className="visually-hidden">
+            Buscar servicio
+          </label>
+          <input
+            id="buscador-servicios"
+            type="search"
+            className="form-control"
+            placeholder="Buscar servicio (ej: teleconsulta, deportiva...)"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+      </div>
+
       {/* Botones de filtro de categorías */}
       <div className="filtros-categorias mb-4">
-        {CATEGORIAS.map((cat) => (
+        {categorias.map((cat) => (
           <button
             key={cat}
             type="button"
@@ -48,24 +59,27 @@ export const ServicesCatalogSection = () => {
         ))}
       </div>
 
+      <p className="text-center text-muted small" aria-live="polite">
+        {serviciosFiltrados.length} servicio(s) encontrado(s)
+      </p>
+
       {/* Grilla con los servicios filtrados */}
       {serviciosFiltrados.length > 0 ? (
         <div className="grilla-servicios">
           {serviciosFiltrados.map((servicio) => (
             <ServiceCard
-              key={servicio.id || servicio.codigo || servicio.nombre}
-              titulo={servicio.nombre || servicio.titulo}
+              key={servicio.id}
+              id={servicio.id}
+              titulo={servicio.nombre}
               descripcion={servicio.descripcion}
-              precio={servicio.precio ?? servicio.valor}
-              categoria={servicio.categoria || servicio.tipo}
+              precio={servicio.precio}
+              categoria={servicio.categoria}
             />
           ))}
         </div>
       ) : (
         <div className="text-center py-5">
-          <p className="text-muted">
-            Pronto añadiremos nuevos servicios en la categoría <strong>{categoriaSeleccionada}</strong>.
-          </p>
+          <p className="text-muted">No encontramos servicios con esos filtros.</p>
         </div>
       )}
     </section>
