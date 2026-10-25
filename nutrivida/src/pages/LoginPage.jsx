@@ -59,7 +59,7 @@ export const LoginPage = () => {
     const usuarioSesion = {
       nombre: usuarioEncontrado.nombre,
       rut: usuarioEncontrado.rut,
-      rol: 'PACIENTE',
+      rol: usuarioEncontrado.rol || 'PACIENTE',
       email: usuarioEncontrado.email,
     };
 
