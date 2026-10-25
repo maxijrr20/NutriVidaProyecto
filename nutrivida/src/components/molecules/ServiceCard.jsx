@@ -1,7 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Price } from '../atoms/Price';
 
-export const ServiceCard = ({ titulo, descripcion, precio, categoria }) => {
+// Molécula: tarjeta de un servicio del catálogo.
+// Recibe todo por props; no maneja estado propio (solo muestra datos).
+export const ServiceCard = ({ id, titulo, descripcion, precio, categoria }) => {
   return (
     <article className="tarjeta-servicio">
       <span className="badge-categoria">{categoria}</span>
@@ -9,9 +12,16 @@ export const ServiceCard = ({ titulo, descripcion, precio, categoria }) => {
       <p>{descripcion}</p>
       <div className="servicio-footer">
         <Price valor={precio} />
-        <a href="/contacto" className="boton boton-secundario boton-sm">
-          Agendar
-        </a>
+        <div className="d-flex gap-2 flex-wrap">
+          {id !== undefined && (
+            <Link to={`/servicios/${id}`} className="boton boton-sm">
+              Ver detalle
+            </Link>
+          )}
+          <Link to="/contacto" className="boton boton-secundario boton-sm">
+            Agendar
+          </Link>
+        </div>
       </div>
     </article>
   );

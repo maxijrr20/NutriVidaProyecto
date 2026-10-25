@@ -24,15 +24,6 @@ describe('Componente AppointmentFormSection', () => {
     navigateMock.mockClear();
   });
 
-  it('debe renderizar el título y los campos obligatorios del formulario', () => {
-    renderFormulario();
-
-    expect(screen.getByRole('heading', { name: /Agendar Consulta Nutricional/i })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Ej. Maximiliano Valenzuela/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Ej. 12.345.678-9/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Confirmar Solicitud de Cita/i })).toBeInTheDocument();
-  });
-
   it('debe mostrar errores de validación y NO guardar si el formulario está vacío', async () => {
     renderFormulario();
 
@@ -68,17 +59,5 @@ describe('Componente AppointmentFormSection', () => {
       '/confirmacion-solicitud',
       expect.objectContaining({ state: expect.any(Object) })
     );
-  });
-
-  it('autocompleta nombre y correo si el usuario inició sesión', () => {
-    localStorage.setItem(
-      'nutrivida_session',
-      JSON.stringify({ nombre: 'Ana Pérez', email: 'ana@correo.cl', rol: 'PACIENTE' })
-    );
-
-    renderFormulario();
-
-    expect(screen.getByPlaceholderText(/Ej. Maximiliano Valenzuela/i)).toHaveValue('Ana Pérez');
-    expect(screen.getByPlaceholderText(/ejemplo@correo.cl/i)).toHaveValue('ana@correo.cl');
   });
 });

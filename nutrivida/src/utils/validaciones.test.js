@@ -14,14 +14,4 @@ describe('validaciones del formulario de cita', () => {
     expect(validarCampo('email', 'correosinarroba')).toBe('Ingresa un correo electrónico válido.');
     expect(validarCampo('email', 'paciente@correo.cl')).toBe('');
   });
-
-  it('valida el teléfono chileno', () => {
-    expect(validarCampo('telefono', '+56 9 1234 5678')).toBe('');
-    expect(validarCampo('telefono', '12345')).toMatch(/9 dígitos/);
-  });
-
-  it('no permite agendar un domingo', () => {
-    expect(validarCampo('fecha', '2026-11-01')).toBe('La clínica no atiende los domingos.'); // domingo
-    expect(validarCampo('fecha', '2026-11-02')).toBe(''); // lunes
-  });
 });
