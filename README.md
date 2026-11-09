@@ -29,7 +29,7 @@ Los pacientes registrados pueden iniciar sesión, solicitar citas, consultar sus
 El sistema también cuenta con acceso diferenciado para administradores, quienes disponen de un panel protegido para gestionar información de la aplicación.
 
 ---
-
+- **Repositorio Backend:** [NutriVida Backend Service](https://github.com/maxijrr20/nutrivida-backend.git)
 ## Funcionalidades principales
 
 ### Sitio público
