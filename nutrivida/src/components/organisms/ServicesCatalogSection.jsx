@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { ServiceCard } from '../molecules/ServiceCard';
-import { useServicios } from '../../context/ServiciosContext';
 import { filtrarServicios } from '../../utils/filtros';
 
 // Organismo: catálogo con buscador por texto + filtro por categoría.
-export const ServicesCatalogSection = () => {
-  const { servicios: serviciosData } = useServicios();
+// Recibe por props la lista de servicios y las acciones de cada tarjeta.
+// Solo guarda en su estado lo que el usuario eligió para filtrar.
+export const ServicesCatalogSection = ({ servicios = [], onVerDetalle, onAgendar }) => {
 
   // Estado local: lo que el usuario eligió para filtrar
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
 
   // Las categorías salen de los datos: si el admin crea una nueva, aparece aquí sola
-  const categorias = ['Todos', ...new Set(serviciosData.map((s) => s.categoria).filter(Boolean))];
+  const categorias = ['Todos', ...new Set(servicios.map((s) => s.categoria).filter(Boolean))];
 
-  const serviciosFiltrados = filtrarServicios(serviciosData, {
+  const serviciosFiltrados = filtrarServicios(servicios, {
     categoria: categoriaSeleccionada,
     texto: busqueda,
   });
@@ -69,11 +69,12 @@ export const ServicesCatalogSection = () => {
           {serviciosFiltrados.map((servicio) => (
             <ServiceCard
               key={servicio.id}
-              id={servicio.id}
               titulo={servicio.nombre}
               descripcion={servicio.descripcion}
               precio={servicio.precio}
               categoria={servicio.categoria}
+              onVerDetalle={() => onVerDetalle(servicio.id)}
+              onAgendar={onAgendar}
             />
           ))}
         </div>
