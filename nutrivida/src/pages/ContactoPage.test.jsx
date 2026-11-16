@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../test-utils';
+import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
 import { ContactoPage } from './ContactoPage';
@@ -14,7 +15,12 @@ vi.mock(
 
 describe('ContactoPage', () => {
   test('renderiza el formulario de agendamiento', () => {
-    render(<ContactoPage />);
+    // La página ahora usa el router y los contextos, por eso se envuelve con ellos
+    render(
+      <MemoryRouter>
+        <ContactoPage />
+      </MemoryRouter>
+    );
 
     expect(
       screen.getByText('Formulario de cita simulado')
