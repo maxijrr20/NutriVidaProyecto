@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Card from 'react-bootstrap/Card';
 import Badge from 'react-bootstrap/Badge';
-import Button from 'react-bootstrap/Button';
+import { Button } from '../components/atoms/Button';
 
 import { useServicios } from '../context/ServiciosContext';
 
@@ -20,11 +20,9 @@ function DetalleServicioPage() {
       <Container className="py-5 text-center">
         <h2>Servicio no encontrado</h2>
 
-        <Link to="/servicios">
-          <Button variant="success" className="mt-3">
-            Volver a servicios
-          </Button>
-        </Link>
+        <Button as={Link} to="/servicios" variant="success" className="mt-3">
+          Volver a servicios
+        </Button>
       </Container>
     );
   }
@@ -76,11 +74,9 @@ function DetalleServicioPage() {
             <strong>Precio:</strong> {precioFormateado}
           </p>
 
-          <Link to="/servicios">
-            <Button variant="outline-success" className="mt-3">
-              Volver a servicios
-            </Button>
-          </Link>
+          <Button as={Link} to="/servicios" variant="outline-success" className="mt-3">
+            Volver a servicios
+          </Button>
 
         </Card.Body>
 
