@@ -1,8 +1,9 @@
-export const ClinicStatItem = ({ value, label }) => {
+// Molécula: un dato de la clínica (valor destacado + etiqueta).
+export const ClinicStatItem = ({ valor, etiqueta }) => {
   return (
     <article>
-      <strong>{value}</strong>
-      <span>{label}</span>
+      <strong>{valor}</strong>
+      <span>{etiqueta}</span>
     </article>
   );
 };
