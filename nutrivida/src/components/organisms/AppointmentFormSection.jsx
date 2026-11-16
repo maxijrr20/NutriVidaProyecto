@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import imgConsulta from '../../assets/consulta-nutricion.png';
-import nutricionistasData from '../../data/nutricionistas.json';
 import { validarCampo } from '../../utils/validaciones';
-import { useServicios } from '../../context/ServiciosContext';
-import { useCitas } from '../../context/CitasContext';
-import { obtenerSesion } from '../../utils/sesion';
 
 // Bloques cada 30 minutos según la jornada laboral de cada nutricionista en el Excel oficial:
 const HORARIOS_POR_CODIGO = {
@@ -35,27 +30,29 @@ const HORARIOS_POR_CODIGO = {
   ]
 };
 
-export const AppointmentFormSection = () => {
-  const navigate = useNavigate();
-  const { servicios: serviciosData } = useServicios();
-  const { agregarCita } = useCitas();
-
-  // Si el usuario inició sesión, sus datos se completan solos
-  const [formData, setFormData] = useState(() => {
-    const sesion = obtenerSesion();
-    const rutSesion = sesion?.rut && !sesion.rut.includes('@') ? sesion.rut : '';
-    return {
-    nombreCompleto: sesion?.nombre || '',
-    rut: rutSesion,
-    email: sesion?.email || '',
+// Organismo: formulario de agendamiento.
+// Es el dueño del estado del formulario y de los errores, y valida al enviar.
+// Recibe por props:
+//   - servicios y nutricionistas: las opciones de las listas desplegables
+//   - datosIniciales: nombre, rut y email ya conocidos (por ejemplo, de la sesión)
+//   - onEnviar: la función que se llama SOLO si todo es válido; la página decide qué hacer después
+export const AppointmentFormSection = ({
+  servicios = [],
+  nutricionistas = [],
+  datosIniciales = {},
+  onEnviar,
+}) => {
+  const [formData, setFormData] = useState(() => ({
+    nombreCompleto: datosIniciales.nombreCompleto || '',
+    rut: datosIniciales.rut || '',
+    email: datosIniciales.email || '',
     telefono: '',
-    servicioId: serviciosData[0]?.id || '',
-    nutricionistaCodigo: nutricionistasData[0]?.codigo || 'NUT001',
+    servicioId: servicios[0]?.id || '',
+    nutricionistaCodigo: nutricionistas[0]?.codigo || 'NUT001',
     fecha: '',
     hora: '',
     motivo: ''
-    };
-  });
+  }));
 
   const [errores, setErrores] = useState({});
   const [tocado, setTocado] = useState({});
@@ -65,11 +62,11 @@ export const AppointmentFormSection = () => {
   manana.setDate(manana.getDate() + 1);
   const fechaMinima = manana.toISOString().split('T')[0];
 
-  const servicioSeleccionado = serviciosData.find(
+  const servicioSeleccionado = servicios.find(
     (s) => String(s.id) === String(formData.servicioId)
   );
 
-  const nutricionistaSeleccionado = nutricionistasData.find(
+  const nutricionistaSeleccionado = nutricionistas.find(
     (n) => n.codigo === formData.nutricionistaCodigo
   );
 
@@ -119,8 +116,8 @@ export const AppointmentFormSection = () => {
     });
 
     if (Object.keys(nuevosErrores).length === 0) {
-      // Se guarda la solicitud (CitasContext -> localStorage) y se pasa a la confirmación
-      const cita = agregarCita({
+      // Todo es válido: se avisa a la página con los datos de la solicitud
+      onEnviar({
         nombre: formData.nombreCompleto,
         rut: formData.rut,
         email: formData.email,
@@ -133,7 +130,6 @@ export const AppointmentFormSection = () => {
         hora: formData.hora,
         motivo: formData.motivo
       });
-      navigate('/confirmacion-solicitud', { state: { solicitud: cita } });
     }
   };
 
@@ -263,7 +259,7 @@ export const AppointmentFormSection = () => {
                     value={formData.servicioId}
                     onChange={handleChange}
                   >
-                    {serviciosData.map((s) => (
+                    {servicios.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.nombre} (${s.precio?.toLocaleString('es-CL')} CLP) — {s.duracion}
                       </option>
@@ -280,7 +276,7 @@ export const AppointmentFormSection = () => {
                     value={formData.nutricionistaCodigo}
                     onChange={handleChange}
                   >
-                    {nutricionistasData.map((n) => (
+                    {nutricionistas.map((n) => (
                       <option key={n.codigo} value={n.codigo}>
                         {n.nombre} ({n.dias} | {n.horario})
                       </option>

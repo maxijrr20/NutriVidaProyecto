@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import Table from 'react-bootstrap/Table';
 import { NutritionistRow } from '../molecules/NutritionistRow';
-import nutricionistasData from '../../data/nutricionistas.json';
 
-export const TeamDirectorySection = () => {
+// Organismo: directorio del equipo con buscador.
+// Recibe por props la lista de nutricionistas y la acción "Agendar";
+// solo guarda en su estado el texto que se está buscando.
+export const TeamDirectorySection = ({ nutricionistas = [], onAgendar }) => {
   const [busqueda, setBusqueda] = useState('');
 
   // Filtrado reactivo por nombre o especialidad
-  const profesionalesFiltrados = nutricionistasData.filter((prof) => {
+  const profesionalesFiltrados = nutricionistas.filter((prof) => {
     const termino = busqueda.toLowerCase();
     const coincideNombre = prof.nombre?.toLowerCase().includes(termino);
     const coincideEspecialidad = prof.especialidad?.toLowerCase().includes(termino);
@@ -51,7 +53,15 @@ export const TeamDirectorySection = () => {
           <tbody>
             {profesionalesFiltrados.length > 0 ? (
               profesionalesFiltrados.map((nutri) => (
-                <NutritionistRow key={nutri.id || nutri.codigo} nutricionista={nutri} />
+                <NutritionistRow
+                  key={nutri.id || nutri.codigo}
+                  codigo={nutri.codigo}
+                  nombre={nutri.nombre}
+                  especialidad={nutri.especialidad}
+                  dias={nutri.dias}
+                  horario={nutri.horario}
+                  onAgendar={onAgendar}
+                />
               ))
             ) : (
               <tr>

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Price } from '../atoms/Price';
 
 // Molécula: tarjeta de un servicio del catálogo.
-// Recibe todo por props; no maneja estado propio (solo muestra datos).
-export const ServiceCard = ({ id, titulo, descripcion, precio, categoria }) => {
+// Recibe todo por props: los datos del servicio y qué hacer al presionar cada botón.
+// No conoce el router; la página decide a dónde navegar.
+export const ServiceCard = ({ titulo, descripcion, precio, categoria, onVerDetalle, onAgendar }) => {
   return (
     <article className="tarjeta-servicio">
       <span className="badge-categoria">{categoria}</span>
@@ -13,14 +13,14 @@ export const ServiceCard = ({ id, titulo, descripcion, precio, categoria }) => {
       <div className="servicio-footer">
         <Price valor={precio} />
         <div className="d-flex gap-2 flex-wrap">
-          {id !== undefined && (
-            <Link to={`/servicios/${id}`} className="boton boton-sm">
+          {onVerDetalle && (
+            <button type="button" className="boton boton-sm" onClick={onVerDetalle}>
               Ver detalle
-            </Link>
+            </button>
           )}
-          <Link to="/contacto" className="boton boton-secundario boton-sm">
+          <button type="button" className="boton boton-secundario boton-sm" onClick={onAgendar}>
             Agendar
-          </Link>
+          </button>
         </div>
       </div>
     </article>

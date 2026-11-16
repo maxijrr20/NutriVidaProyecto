@@ -1,11 +1,12 @@
 import { Price } from '../atoms/Price';
 
-export const FeaturedServiceCard = ({ title, description, price }) => {
+// Molécula: tarjeta de un servicio destacado.
+export const FeaturedServiceCard = ({ titulo, descripcion, precio }) => {
   return (
     <article className="tarjeta-destacada">
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <Price value={price} />
+      <h3>{titulo}</h3>
+      <p>{descripcion}</p>
+      <Price valor={precio} />
     </article>
   );
 };

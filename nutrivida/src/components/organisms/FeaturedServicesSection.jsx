@@ -1,12 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import { FeaturedServiceCard } from '../molecules/FeaturedServiceCard';
-import { useServicios } from '../../context/ServiciosContext';
 
-export const FeaturedServicesSection = () => {
-  const navigate = useNavigate();
-  const { servicios: serviciosData } = useServicios();
-  const codigosDestacados = ['CN001', 'CN002', 'PL003'];
-  const destacados = serviciosData.filter(s => codigosDestacados.includes(s.codigo));
+// Organismo: servicios destacados del inicio.
+// Recibe por props los servicios a mostrar y qué hacer al pedir "ver todos".
+export const FeaturedServicesSection = ({ servicios = [], onVerTodos }) => {
 
   return (
     <section className="servicios-destacados">
@@ -17,17 +13,17 @@ export const FeaturedServicesSection = () => {
       </p>
 
       <div className="grilla-destacados">
-        {destacados.map((item) => (
+        {servicios.map((servicio) => (
           <FeaturedServiceCard
-            key={item.codigo}
-            title={item.nombre}
-            description={item.descripcion}
-            price={item.precio}
+            key={servicio.codigo}
+            titulo={servicio.nombre}
+            descripcion={servicio.descripcion}
+            precio={servicio.precio}
           />
         ))}
       </div>
 
-      <button className="boton enlace-servicios mt-3" onClick={() => navigate('/servicios')}>
+      <button className="boton enlace-servicios mt-3" onClick={onVerTodos}>
         Ver todos los servicios
       </button>
     </section>

@@ -1,9 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import homePlanNutricional from '../../assets/home-plan-nutricional.jpg';
 
-export const HeroSection = () => {
-  const navigate = useNavigate();
-
+// Organismo: portada del inicio. No conoce el router:
+// recibe por props lo que deben hacer sus botones.
+export const HeroSection = ({ onAgendar, onVerServicios }) => {
   return (
     <section
       style={{
@@ -80,7 +79,7 @@ export const HeroSection = () => {
             }}
           >
             <button
-              onClick={() => navigate('/contacto')}
+              onClick={onAgendar}
               className="btn btn-success px-4 py-3 fw-semibold"
               style={{
                 borderRadius: '12px',
@@ -90,7 +89,7 @@ export const HeroSection = () => {
             </button>
 
             <button
-              onClick={() => navigate('/servicios')}
+              onClick={onVerServicios}
               className="btn btn-outline-success px-4 py-3 fw-semibold"
               style={{
                 borderRadius: '12px',

@@ -1,42 +1,41 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../test-utils';
+import { render, screen } from '@testing-library/react';
 import AppointmentFormSection from './AppointmentFormSection';
+import nutricionistas from '../../data/nutricionistas.json';
 
-// Mock de useNavigate: así comprobamos a dónde redirige sin cambiar de página de verdad
-const navigateMock = vi.fn();
-vi.mock('react-router-dom', async (importOriginal) => {
-  const original = await importOriginal();
-  return { ...original, useNavigate: () => navigateMock };
-});
+// El formulario recibe todo por props: no necesita router ni contextos para probarse.
+const servicios = [
+  { id: 1, nombre: 'Primera consulta nutricional', precio: 35000 },
+  { id: 2, nombre: 'Control nutricional', precio: 25000 },
+];
 
-const renderFormulario = () =>
+const renderFormulario = (onEnviar = vi.fn(), datosIniciales = {}) => {
   render(
-    <MemoryRouter>
-      <AppointmentFormSection />
-    </MemoryRouter>
+    <AppointmentFormSection
+      servicios={servicios}
+      nutricionistas={nutricionistas}
+      datosIniciales={datosIniciales}
+      onEnviar={onEnviar}
+    />
   );
+  return onEnviar;
+};
 
 describe('Componente AppointmentFormSection', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    navigateMock.mockClear();
-  });
-
-  it('debe mostrar errores de validación y NO guardar si el formulario está vacío', async () => {
-    renderFormulario();
+  it('debe mostrar errores de validación y NO llamar a onEnviar si el formulario está vacío', async () => {
+    const onEnviar = renderFormulario();
 
     await userEvent.click(screen.getByRole('button', { name: /Confirmar Solicitud de Cita/i }));
 
     expect(screen.getByText('El nombre completo es obligatorio.')).toBeInTheDocument();
     expect(screen.getByText('El RUT es obligatorio.')).toBeInTheDocument();
     expect(screen.getByText('El correo electrónico es obligatorio.')).toBeInTheDocument();
-    expect(navigateMock).not.toHaveBeenCalled();
+    expect(onEnviar).not.toHaveBeenCalled();
   });
 
-  it('con datos válidos guarda la cita en localStorage y redirige a la confirmación', async () => {
-    renderFormulario();
+  it('con datos válidos llama a onEnviar con los datos de la solicitud', async () => {
+    const onEnviar = renderFormulario();
 
     await userEvent.type(screen.getByPlaceholderText(/Ej. Maximiliano Valenzuela/i), 'Maximiliano Valenzuela');
     await userEvent.type(screen.getByPlaceholderText(/Ej. 12.345.678-9/i), '12.345.678-5');
@@ -47,17 +46,15 @@ describe('Componente AppointmentFormSection', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Confirmar Solicitud de Cita/i }));
 
-    const guardadas = JSON.parse(localStorage.getItem('nutrivida_citas'));
-    expect(guardadas).toHaveLength(1);
-    expect(guardadas[0]).toMatchObject({
-      nombre: 'Maximiliano Valenzuela',
-      rut: '12.345.678-5',
-      hora: '09:00',
-      estado: 'Pendiente'
-    });
-    expect(navigateMock).toHaveBeenCalledWith(
-      '/confirmacion-solicitud',
-      expect.objectContaining({ state: expect.any(Object) })
+    expect(onEnviar).toHaveBeenCalledTimes(1);
+    expect(onEnviar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nombre: 'Maximiliano Valenzuela',
+        rut: '12.345.678-5',
+        servicio: 'Primera consulta nutricional',
+        precio: 35000,
+        hora: '09:00',
+      })
     );
   });
 });
