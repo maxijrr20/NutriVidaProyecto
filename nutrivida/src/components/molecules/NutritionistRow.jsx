@@ -1,8 +1,8 @@
 
 
-export const NutritionistRow = ({ nutricionista }) => {
-  const { codigo, nombre, especialidad, dias, horario } = nutricionista;
-
+// Molécula: fila de la tabla de nutricionistas.
+// Recibe cada dato por props y la acción del botón "Agendar" (onAgendar).
+export const NutritionistRow = ({ codigo, nombre, especialidad, dias, horario, onAgendar }) => {
   return (
     <tr className="fila-nutricionista">
       <td>
@@ -13,9 +13,9 @@ export const NutritionistRow = ({ nutricionista }) => {
       <td>{dias}</td>
       <td>{horario}</td>
       <td>
-        <a href="/contacto" className="boton boton-secundario boton-xs">
+        <button type="button" className="boton boton-secundario boton-xs" onClick={onAgendar}>
           Agendar
-        </a>
+        </button>
       </td>
     </tr>
   );

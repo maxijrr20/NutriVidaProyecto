@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ServicesCatalogSection } from '../components/organisms/ServicesCatalogSection';
 import { TeamDirectorySection } from '../components/organisms/TeamDirectorySection';
 import { useServicios } from '../context/ServiciosContext';
+import nutricionistas from '../data/nutricionistas.json';
 
 // Página: obtiene los servicios del contexto y la navegación del router,
 // y se los entrega por props a los organismos.
@@ -22,7 +23,10 @@ export const ServiciosPage = () => {
       <hr className="separador-secciones my-5" />
 
       {/* 2. Directorio completo del equipo médico */}
-      <TeamDirectorySection />
+      <TeamDirectorySection
+        nutricionistas={nutricionistas}
+        onAgendar={() => navigate('/contacto')}
+      />
     </main>
   );
 };
