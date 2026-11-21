@@ -5,9 +5,9 @@ import { Button } from '../atoms/Button';
 
 /**
  * Organismo para el formulario de inicio de sesión.
- * Soporta ingreso por correo electrónico, RUT o nombre de usuario administrativo.
+ * El backend identifica al usuario por su correo electrónico.
  */
-export const LoginForm = ({ onSubmit }) => {
+export const LoginForm = ({ onSubmit, cargando = false }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -31,9 +31,9 @@ export const LoginForm = ({ onSubmit }) => {
     <Form onSubmit={handleSubmit} className="p-4 border rounded shadow-sm bg-white">
       <h3 className="mb-4 text-center text-success">Iniciar Sesión</h3>
       <FormField
-        label="Correo, RUT o Usuario"
-        type="text"
-        placeholder="ejemplo@nutrivida.cl o admin"
+        label="Correo electrónico"
+        type="email"
+        placeholder="ejemplo@nutrivida.cl"
         name="email"
         value={formData.email}
         onChange={handleChange}
@@ -48,8 +48,8 @@ export const LoginForm = ({ onSubmit }) => {
         onChange={handleChange}
         required
       />
-      <Button type="submit" variant="success" className="w-100 mt-2">
-        Ingresar
+      <Button type="submit" variant="success" className="w-100 mt-2" disabled={cargando}>
+        {cargando ? 'Ingresando...' : 'Ingresar'}
       </Button>
     </Form>
   );
