@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { validarRutChileno } from '../utils/validaciones';
+import { registrarPaciente } from '../services/authService';
 
 export default function RegistroPage() {
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
     rut: '',
+    telefono: '',
     password: '',
   });
 
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState('');
+  const [errorGeneral, setErrorGeneral] = useState('');
+  const [cargando, setCargando] = useState(false);
 
   const navigate = useNavigate();
 
@@ -53,83 +57,60 @@ export default function RegistroPage() {
         'Ingresa un correo electrónico válido.';
     }
 
-    if (formData.password.length < 6) {
+    if (formData.telefono.trim() && !/^\+?\d{8,15}$/.test(formData.telefono.trim())) {
+      nuevosErrores.telefono =
+        'El teléfono debe tener entre 8 y 15 dígitos (ej: +56912345678).';
+    }
+
+    // Mismo rango que exige el backend (BCrypt considera hasta 72 bytes)
+    if (formData.password.length < 8 || formData.password.length > 72) {
       nuevosErrores.password =
-        'La contraseña debe tener al menos 6 caracteres.';
+        'La contraseña debe tener entre 8 y 72 caracteres.';
     }
 
-    const usuariosRegistrados =
-      JSON.parse(
-        localStorage.getItem('nutrivida_usuarios')
-      ) || [];
-
-    const correoExiste = usuariosRegistrados.some(
-      (usuario) =>
-        usuario.email?.toLowerCase().trim() === emailLimpio
-    );
-
-    if (correoExiste) {
-      nuevosErrores.email =
-        'Este correo ya se encuentra registrado.';
-    }
-
-    const rutExiste = usuariosRegistrados.some(
-      (usuario) =>
-        usuario.rut
-          ?.replace(/\./g, '')
-          .replace(/-/g, '')
-          .toUpperCase() ===
-        rutLimpio
-          .replace(/\./g, '')
-          .replace(/-/g, '')
-          .toUpperCase()
-    );
-
-    if (rutExiste) {
-      nuevosErrores.rut =
-        'Este RUT ya se encuentra registrado.';
-    }
+    // Correo y RUT repetidos los detecta el backend (responde 409)
 
     setErrores(nuevosErrores);
 
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  // Registro contra el backend: POST /api/v1/auth/register
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje('');
+    setErrorGeneral('');
 
     if (!validarFormulario()) {
       return;
     }
 
-    const usuariosPrevios =
-      JSON.parse(
-        localStorage.getItem('nutrivida_usuarios')
-      ) || [];
+    setCargando(true);
 
-    const nuevoUsuario = {
-      nombre: formData.nombre.trim(),
-      rut: formData.rut.trim(),
-      email: formData.email.trim().toLowerCase(),
-      password: formData.password,
-    };
+    try {
+      await registrarPaciente(formData);
 
-    localStorage.setItem(
-      'nutrivida_usuarios',
-      JSON.stringify([
-        ...usuariosPrevios,
-        nuevoUsuario,
-      ])
-    );
+      setMensaje(
+        '¡Registro exitoso! Redirigiendo al inicio de sesión...'
+      );
 
-    setMensaje(
-      '¡Registro exitoso! Redirigiendo al inicio de sesión...'
-    );
-
-    setTimeout(() => {
-      navigate('/login');
-    }, 1500);
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
+    } catch (err) {
+      if (err.estado === 409) {
+        // "Ya existe una cuenta con ese correo." / "... con ese RUT."
+        const campo = /RUT/i.test(err.message) ? 'rut' : 'email';
+        setErrores((previos) => ({ ...previos, [campo]: err.message }));
+      } else if (err.estado === 400 && Object.keys(err.errores).length) {
+        // Errores por campo que devuelve la validación del backend
+        setErrores((previos) => ({ ...previos, ...err.errores }));
+      } else {
+        setErrorGeneral(err.message);
+      }
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -145,6 +126,12 @@ export default function RegistroPage() {
         <p className="text-muted text-center small mb-4">
           Regístrate para gestionar tus citas en NutriVida.
         </p>
+
+        {errorGeneral && (
+          <div className="alert alert-danger" role="alert">
+            {errorGeneral}
+          </div>
+        )}
 
         {mensaje && (
           <div className="alert alert-success">
@@ -224,6 +211,29 @@ export default function RegistroPage() {
 
           <div className="mb-3">
             <label className="form-label fw-bold">
+              Teléfono <span className="text-muted fw-normal">(opcional)</span>
+            </label>
+
+            <input
+              type="tel"
+              name="telefono"
+              className={`form-control ${
+                errores.telefono ? 'is-invalid' : ''
+              }`}
+              placeholder="+56912345678"
+              value={formData.telefono}
+              onChange={handleChange}
+            />
+
+            {errores.telefono && (
+              <div className="invalid-feedback">
+                {errores.telefono}
+              </div>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-bold">
               Contraseña
             </label>
 
@@ -233,7 +243,7 @@ export default function RegistroPage() {
               className={`form-control ${
                 errores.password ? 'is-invalid' : ''
               }`}
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
               value={formData.password}
               onChange={handleChange}
             />
@@ -248,8 +258,9 @@ export default function RegistroPage() {
           <button
             type="submit"
             className="btn btn-success w-100 fw-bold py-2 mt-2"
+            disabled={cargando}
           >
-            Registrarse
+            {cargando ? 'Registrando...' : 'Registrarse'}
           </button>
         </form>
 
