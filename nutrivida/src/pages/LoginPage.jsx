@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LoginForm } from '../components/organisms/LoginForm';
 import { iniciarSesion } from '../services/authService';
 
@@ -9,6 +9,9 @@ import { iniciarSesion } from '../services/authService';
 // del usuario en localStorage (ver utils/sesion.js).
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Página protegida que se intentó abrir sin sesión (la guarda RutaPrivada)
+  const desde = location.state?.desde;
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -21,7 +24,8 @@ export const LoginPage = () => {
         email: data.email || '',
         password: data.password || '',
       });
-      navigate(usuario.rol === 'ADMIN' ? '/admin' : '/');
+      // Vuelve a la página que se pidió; si no había, el ADMIN va al panel y el resto al inicio
+      navigate(desde || (usuario.rol === 'ADMIN' ? '/admin' : '/'), { replace: true });
     } catch (err) {
       // 401: mensaje genérico del backend ("Correo o contraseña incorrectos.")
       // 400: faltan datos · 0: el backend no responde
@@ -35,6 +39,12 @@ export const LoginPage = () => {
     <Container className="d-flex align-items-center justify-content-center min-vh-100">
       <Row className="w-100 justify-content-center">
         <Col xs={12} sm={10} md={8} lg={5} xl={4}>
+
+          {desde && !error && (
+            <div className="alert alert-info text-center" role="status">
+              Inicia sesión para continuar.
+            </div>
+          )}
 
           {error && (
             <div className="alert alert-danger text-center" role="alert">

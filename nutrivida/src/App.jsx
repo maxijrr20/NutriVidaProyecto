@@ -21,7 +21,8 @@ import BlogPage from './pages/BlogPage';
 import BlogDetallePage from './pages/BlogDetallePage';
 import RegistroPage from './pages/RegistroPage';
 
-import RutaAdmin from './components/RutaAdmin';
+import RutaPrivada from './components/RutaPrivada';
+import SinPermisoPage from './pages/SinPermisoPage';
 import NoEncontradoPage from './pages/NoEncontradoPage';
 
 function App() {
@@ -81,20 +82,32 @@ function App() {
             element={<BlogDetallePage />}
           />
 
-          {/* Agendamiento */}
+          {/* Agendamiento: exige sesión (cualquier rol) */}
           <Route
             path="/contacto"
-            element={<ContactoPage />}
+            element={
+              <RutaPrivada>
+                <ContactoPage />
+              </RutaPrivada>
+            }
           />
 
           <Route
             path="/confirmacion-solicitud"
-            element={<ConfirmacionSolicitudPage />}
+            element={
+              <RutaPrivada>
+                <ConfirmacionSolicitudPage />
+              </RutaPrivada>
+            }
           />
 
           <Route
             path="/solicitud-en-curso"
-            element={<SolicitudEnCursoPage />}
+            element={
+              <RutaPrivada>
+                <SolicitudEnCursoPage />
+              </RutaPrivada>
+            }
           />
           <Route
             path="/resultado"
@@ -112,14 +125,20 @@ function App() {
             element={<LoginPage />}
           />
 
-          {/* Panel de administración protegido */}
+          {/* Panel de administración: exige sesión y rol ADMIN */}
           <Route
             path="/admin"
             element={
-              <RutaAdmin>
+              <RutaPrivada roles={['ADMIN']}>
                 <AdminDashboardPage />
-              </RutaAdmin>
+              </RutaPrivada>
             }
+          />
+
+          {/* Con sesión, pero sin el rol que pide la ruta */}
+          <Route
+            path="/sin-permiso"
+            element={<SinPermisoPage />}
           />
 
           {/* Cualquier otra URL */}

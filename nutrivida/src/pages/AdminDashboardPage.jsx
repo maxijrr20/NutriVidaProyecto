@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import nutricionistasData from '../data/nutricionistas.json';
 import { useServicios } from '../context/ServiciosContext';
 import { useCitas } from '../context/CitasContext';
-import { CLAVE_SESION, obtenerSesion } from '../utils/sesion';
+import { cerrarSesion, obtenerSesion } from '../utils/sesion';
 import {
   listarUsuarios,
-  guardarUsuarios,
   crearUsuario,
   actualizarUsuario,
-  eliminarUsuario,
+  cambiarRolUsuario,
+  desactivarUsuario,
 } from '../services/usuariosService';
 import {
   listarCategoriasGuardadas,
@@ -41,9 +41,53 @@ export const AdminDashboardPage = () => {
   const { servicios, agregarServicio, editarServicio, eliminarServicio, renombrarCategoria } = useServicios();
   const { citas, actualizarCita } = useCitas();
 
-  // Usuarios: estado local sincronizado con localStorage
-  const [usuarios, setUsuarios] = useState(listarUsuarios);
-  useEffect(() => guardarUsuarios(usuarios), [usuarios]);
+  // Usuarios: vienen del backend (GET /api/v1/usuarios, solo ADMIN)
+  const [usuarios, setUsuarios] = useState([]);
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
+  const [errorUsuarios, setErrorUsuarios] = useState('');
+
+  // Si el token venció o la cuenta se desactivó (401), apiFetch borra la sesión: se vuelve al login
+  const manejarErrorApi = useCallback((err) => {
+    if (err.estado === 401) navigate('/login', { replace: true });
+    throw err;
+  }, [navigate]);
+
+  const cargarUsuarios = useCallback(
+    () =>
+      listarUsuarios()
+        .then((lista) => {
+          setUsuarios(lista);
+          setErrorUsuarios('');
+        })
+        .catch((err) => {
+          if (err.estado === 401) navigate('/login', { replace: true });
+          setErrorUsuarios(err.message);
+        })
+        .finally(() => setCargandoUsuarios(false)),
+    [navigate]
+  );
+
+  useEffect(() => {
+    cargarUsuarios();
+  }, [cargarUsuarios]);
+
+  // Cada operación llama al endpoint y luego vuelve a pedir la lista, así la tabla muestra lo que quedó en la base de datos
+  const crearUsuarioApi = (datos) =>
+    crearUsuario(datos).then(cargarUsuarios).catch(manejarErrorApi);
+
+  const editarUsuarioApi = async (usuario, datos) => {
+    try {
+      await actualizarUsuario(usuario.id, datos);
+      if (datos.rol !== usuario.rol) await cambiarRolUsuario(usuario.id, datos.rol);
+    } catch (err) {
+      manejarErrorApi(err);
+    } finally {
+      await cargarUsuarios();
+    }
+  };
+
+  const desactivarUsuarioApi = (usuario) =>
+    desactivarUsuario(usuario.id).then(cargarUsuarios).catch(manejarErrorApi);
 
   // Categorías creadas por el admin que aún no tienen servicios
   const [categoriasExtra, setCategoriasExtra] = useState(listarCategoriasGuardadas);
@@ -60,7 +104,7 @@ export const AdminDashboardPage = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(CLAVE_SESION);
+    cerrarSesion();
     navigate('/login');
   };
 
@@ -96,10 +140,13 @@ export const AdminDashboardPage = () => {
     usuariosCrud: (
       <AdminUsuarios
         usuarios={usuarios}
-        // crearUsuario lanza un error si el correo ya existe; AdminUsuarios lo muestra
-        onCrear={(nuevo) => setUsuarios(crearUsuario(usuarios, nuevo))}
-        onEditar={(email, datos) => setUsuarios((prev) => actualizarUsuario(prev, email, datos))}
-        onEliminar={(email) => setUsuarios((prev) => eliminarUsuario(prev, email))}
+        cargando={cargandoUsuarios}
+        errorCarga={errorUsuarios}
+        idActual={obtenerSesion()?.id}
+        // Si el backend responde con error (400, 403, 409), AdminUsuarios muestra el mensaje
+        onCrear={crearUsuarioApi}
+        onEditar={editarUsuarioApi}
+        onDesactivar={desactivarUsuarioApi}
       />
     ),
     historial: <AdminHistorial citas={citas} />,
