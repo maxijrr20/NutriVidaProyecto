@@ -3,7 +3,19 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, within } from '../test-utils';
 import AdminDashboardPage from './AdminDashboardPage';
-import { CLAVE_CITAS } from '../context/CitasContext';
+import { mockApi, iniciarSesionDePrueba } from '../mockApi';
+
+const citaDemo = {
+  id: 1,
+  nombre: 'Ana Pérez',
+  email: 'ana@correo.cl',
+  servicio: 'Primera consulta nutricional',
+  nutricionistaCodigo: 'NUT001',
+  nutricionista: 'Nut. Carolina Fuentes M.',
+  fecha: '2026-12-02',
+  hora: '10:30',
+  estado: 'Pendiente',
+};
 
 const renderPanel = () =>
   render(
@@ -14,28 +26,31 @@ const renderPanel = () =>
 
 describe('Vista de Administración - AdminDashboardPage', () => {
   beforeEach(() => {
-    localStorage.clear();
+    iniciarSesionDePrueba({ id: 1, nombre: 'Administrador', rol: 'ADMIN', email: 'admin@nutrivida.cl' });
   });
 
   it('debe renderizar el menú de navegación del panel', () => {
+    mockApi({ 'GET /usuarios': [], 'GET /citas': [] });
     renderPanel();
     expect(screen.getByText(/Panel NutriVida/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Dashboard \/ Resumen/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Catálogo \/ CRUD Servicios/i })).toBeInTheDocument();
   });
 
-  it('al confirmar una solicitud, el cambio pasa por CitasContext y queda guardado', async () => {
-    localStorage.setItem(
-      CLAVE_CITAS,
-      JSON.stringify([{ id: 1, nombre: 'Ana Pérez', email: 'ana@correo.cl', fecha: '2026-11-02', estado: 'Pendiente' }])
-    );
+  it('al confirmar una solicitud llama a PATCH /citas/{id}/estado y muestra el estado que devuelve el backend', async () => {
+    const fetchMock = mockApi({
+      'GET /usuarios': [],
+      'GET /citas': [citaDemo],
+      'PATCH /citas/1/estado': (cuerpo) => ({ ...citaDemo, estado: cuerpo.estado }),
+    });
     renderPanel();
 
     await userEvent.click(screen.getByRole('button', { name: /Gestión de Solicitudes/i }));
-    const fila = screen.getByText('Ana Pérez').closest('tr');
+    const fila = (await screen.findByText('Ana Pérez')).closest('tr');
     await userEvent.click(within(fila).getByRole('button', { name: 'Confirmar' }));
 
-    expect(within(fila).getByText('Confirmada')).toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem(CLAVE_CITAS))[0].estado).toBe('Confirmada');
+    expect(await within(fila).findByText('Confirmada')).toBeInTheDocument();
+    const llamada = fetchMock.mock.calls.find(([url]) => /\/citas\/1\/estado$/.test(url));
+    expect(JSON.parse(llamada[1].body)).toEqual({ estado: 'Confirmada' });
   });
 });

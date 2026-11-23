@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import nutricionistasData from '../data/nutricionistas.json';
 import { useServicios } from '../context/ServiciosContext';
 import { useCitas } from '../context/CitasContext';
 import { cerrarSesion, obtenerSesion } from '../utils/sesion';
@@ -11,12 +10,6 @@ import {
   cambiarRolUsuario,
   desactivarUsuario,
 } from '../services/usuariosService';
-import {
-  listarCategoriasGuardadas,
-  guardarCategorias,
-  obtenerCategorias,
-  contarPorCategoria,
-} from '../services/categoriasService';
 
 import { AdminSidebar } from '../components/organisms/admin/AdminSidebar';
 import { AdminResumen } from '../components/organisms/admin/AdminResumen';
@@ -38,8 +31,25 @@ export const AdminDashboardPage = () => {
   const [seccionActiva, setSeccionActiva] = useState('resumen');
 
   // Datos compartidos por contexto (los mismos que ve el sitio público)
-  const { servicios, agregarServicio, editarServicio, eliminarServicio, renombrarCategoria } = useServicios();
-  const { citas, actualizarCita } = useCitas();
+  const {
+    servicios,
+    categorias: listaCategorias,
+    nutricionistas,
+    origen,
+    error: errorCatalogo,
+    agregarServicio,
+    editarServicio,
+    eliminarServicio,
+    crearCategoria,
+    renombrarCategoria,
+  } = useServicios();
+  const { citas, error: errorCitas, recargar: recargarCitas, cambiarEstadoCita } = useCitas();
+  const [avisoCitas, setAvisoCitas] = useState('');
+
+  // Las solicitudes dependen de la sesión: se piden al backend al abrir el panel
+  useEffect(() => {
+    recargarCitas();
+  }, [recargarCitas]);
 
   // Usuarios: vienen del backend (GET /api/v1/usuarios, solo ADMIN)
   const [usuarios, setUsuarios] = useState([]);
@@ -89,18 +99,17 @@ export const AdminDashboardPage = () => {
   const desactivarUsuarioApi = (usuario) =>
     desactivarUsuario(usuario.id).then(cargarUsuarios).catch(manejarErrorApi);
 
-  // Categorías creadas por el admin que aún no tienen servicios
-  const [categoriasExtra, setCategoriasExtra] = useState(listarCategoriasGuardadas);
-  useEffect(() => guardarCategorias(categoriasExtra), [categoriasExtra]);
+  // Categorías del backend: nombres para el formulario de servicios y totales para la tabla
+  const categorias = listaCategorias.map((c) => c.nombre);
+  const resumenCategorias = listaCategorias.map((c) => ({ categoria: c.nombre, total: c.totalServicios }));
 
-  const categorias = obtenerCategorias(servicios, categoriasExtra);
-
-  // Confirmar / rechazar pasa por el contexto: así se actualiza en todas las vistas
-  const cambiarEstadoCita = (id, estado) => actualizarCita(id, { estado });
-
-  const renombrar = (anterior, nueva) => {
-    renombrarCategoria(anterior, nueva);
-    setCategoriasExtra((prev) => prev.map((c) => (c === anterior ? nueva : c)));
+  // Confirmar / rechazar: PATCH /citas/{id}/estado (solo ADMIN). Si falla, se muestra el motivo.
+  const cambiarEstado = (id, estado) => {
+    setAvisoCitas('');
+    return cambiarEstadoCita(id, estado).catch((err) => {
+      if (err.estado === 401) navigate('/login', { replace: true });
+      setAvisoCitas(`No se pudo cambiar el estado de la cita #${id}: ${err.message}`);
+    });
   };
 
   const handleLogout = () => {
@@ -115,11 +124,18 @@ export const AdminDashboardPage = () => {
         totalSolicitudes={citas.length}
         pendientes={citas.filter((c) => c.estado === 'Pendiente').length}
         totalUsuarios={usuarios.length}
-        totalNutricionistas={nutricionistasData.length}
+        totalNutricionistas={nutricionistas.length}
         onIrA={setSeccionActiva}
       />
     ),
-    solicitudes: <AdminSolicitudes citas={citas} onCambiarEstado={cambiarEstadoCita} />,
+    solicitudes: (
+      <>
+        {(avisoCitas || errorCitas) && (
+          <div className="alert alert-danger" role="alert">{avisoCitas || `No se pudieron cargar las solicitudes: ${errorCitas}`}</div>
+        )}
+        <AdminSolicitudes citas={citas} onCambiarEstado={cambiarEstado} />
+      </>
+    ),
     servicios: (
       <AdminServicios
         servicios={servicios}
@@ -129,12 +145,12 @@ export const AdminDashboardPage = () => {
         onEliminar={eliminarServicio}
       />
     ),
-    criticos: <AdminCriticos nutricionistas={nutricionistasData} citas={citas} />,
+    criticos: <AdminCriticos nutricionistas={nutricionistas} citas={citas} />,
     categoriasAdmin: (
       <AdminCategorias
-        resumen={contarPorCategoria(servicios, categorias)}
-        onCrear={(nueva) => setCategoriasExtra((prev) => [...prev, nueva])}
-        onRenombrar={renombrar}
+        resumen={resumenCategorias}
+        onCrear={crearCategoria}
+        onRenombrar={renombrarCategoria}
       />
     ),
     usuariosCrud: (
@@ -163,7 +179,14 @@ export const AdminDashboardPage = () => {
             onLogout={handleLogout}
           />
         </div>
-        <div className="col-12 col-md-8 col-lg-9">{secciones[seccionActiva]}</div>
+        <div className="col-12 col-md-8 col-lg-9">
+          {origen !== 'api' && errorCatalogo && (
+            <div className="alert alert-warning" role="alert">
+              {errorCatalogo}. Se muestran datos de respaldo y los cambios del catálogo no se guardarán.
+            </div>
+          )}
+          {secciones[seccionActiva]}
+        </div>
       </div>
     </div>
   );

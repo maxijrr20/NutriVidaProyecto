@@ -11,21 +11,30 @@ export const AdminCategorias = ({ resumen, onCrear, onRenombrar }) => {
   const existe = (nombre) =>
     resumen.some((r) => r.categoria.toLowerCase() === nombre.trim().toLowerCase());
 
-  const handleCrear = (e) => {
+  // onCrear / onRenombrar llaman al backend; si responde con error (409 nombre repetido, 403...), se muestra
+  const handleCrear = async (e) => {
     e.preventDefault();
     if (!nueva.trim()) return setError('Escribe un nombre para la categoría.');
     if (existe(nueva)) return setError('Esa categoría ya existe.');
-    onCrear(nueva.trim());
-    setNueva('');
-    setError('');
+    try {
+      await onCrear(nueva.trim());
+      setNueva('');
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  const handleGuardar = (anterior) => {
+  const handleGuardar = async (anterior) => {
     if (!nombreEditado.trim()) return setError('El nombre no puede quedar vacío.');
     if (nombreEditado.trim() !== anterior && existe(nombreEditado)) return setError('Esa categoría ya existe.');
-    onRenombrar(anterior, nombreEditado.trim());
-    setEditando(null);
-    setError('');
+    try {
+      await onRenombrar(anterior, nombreEditado.trim());
+      setEditando(null);
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (

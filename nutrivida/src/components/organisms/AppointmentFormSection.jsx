@@ -122,6 +122,7 @@ export const AppointmentFormSection = ({
         rut: formData.rut,
         email: formData.email,
         telefono: formData.telefono,
+        servicioId: servicioSeleccionado?.id,
         servicio: servicioSeleccionado?.nombre,
         precio: servicioSeleccionado?.precio,
         nutricionistaCodigo: formData.nutricionistaCodigo,

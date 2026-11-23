@@ -1,47 +1,55 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-
-export const CLAVE_CITAS = 'nutrivida_citas';
-
-const leerCitas = () => {
-  try {
-    const guardadas = localStorage.getItem(CLAVE_CITAS);
-    return guardadas ? JSON.parse(guardadas) : [];
-  } catch {
-    return [];
-  }
-};
+import { createContext, useCallback, useContext, useState } from 'react';
+import * as api from '../services/citasService';
+import { obtenerSesion } from '../utils/sesion';
 
 export const CitasContext = createContext(null);
 
-// Solicitudes de cita (la "solicitud en curso" de NutriVida), guardadas en localStorage.
+// Solicitudes de cita guardadas en el backend (tabla "cita" de PostgreSQL).
+// Las páginas que las muestran llaman a recargar() al abrirse, porque dependen de quién inició sesión:
+// el backend entrega al PACIENTE solo sus solicitudes y al ADMIN todas.
 export const CitasProvider = ({ children }) => {
-  const [citas, setCitas] = useState(leerCitas);
+  const [citas, setCitas] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    localStorage.setItem(CLAVE_CITAS, JSON.stringify(citas));
-  }, [citas]);
+  const recargar = useCallback(async () => {
+    if (!obtenerSesion()) {
+      setCitas([]);
+      return;
+    }
+    setCargando(true);
+    try {
+      setCitas(await api.listarCitas());
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
+  }, []);
 
-  const agregarCita = (nuevaCita) => {
-    const citaConId = {
-      ...nuevaCita,
-      id: Date.now(),
-      estado: 'Pendiente',
-      fechaCreacion: new Date().toLocaleDateString('es-CL')
-    };
-    setCitas((prev) => [...prev, citaConId]);
-    return citaConId;
+  // Reemplaza en la lista la cita que devolvió el backend
+  const reemplazar = (actualizada) => {
+    setCitas((prev) => prev.map((c) => (c.id === actualizada.id ? actualizada : c)));
+    return actualizada;
   };
 
-  const actualizarCita = (id, datos) => {
-    setCitas((prev) =>
-      prev.map((c) => (String(c.id) === String(id) ? { ...c, ...datos } : c))
-    );
+  // Estas funciones devuelven promesas: si el backend responde con error
+  // (400 datos inválidos, 403 cita ajena, 409 horario tomado), la página muestra el mensaje.
+  const agregarCita = async (datos) => {
+    const nueva = await api.crearCita(datos);
+    setCitas((prev) => [...prev, nueva]);
+    return nueva;
   };
 
-  const cancelarCita = (id) => actualizarCita(id, { estado: 'Cancelada' });
+  const cancelarCita = async (id) => reemplazar(await api.cancelarCita(id));
+  const reprogramarCita = async (id, fecha, hora) => reemplazar(await api.reprogramarCita(id, fecha, hora));
+  const cambiarEstadoCita = async (id, estado) => reemplazar(await api.cambiarEstadoCita(id, estado));
 
   return (
-    <CitasContext.Provider value={{ citas, agregarCita, actualizarCita, cancelarCita }}>
+    <CitasContext.Provider
+      value={{ citas, cargando, error, recargar, agregarCita, cancelarCita, reprogramarCita, cambiarEstadoCita }}
+    >
       {children}
     </CitasContext.Provider>
   );

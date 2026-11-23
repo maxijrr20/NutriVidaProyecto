@@ -25,6 +25,7 @@ export const AdminServicios = ({ servicios, categorias, onCrear, onEditar, onEli
   const [formulario, setFormulario] = useState({ ...FORM_VACIO, categoria: categorias[0] || '' });
   const [editandoId, setEditandoId] = useState(null); // null = creando; un id = editando
   const [errores, setErrores] = useState({});
+  const [guardando, setGuardando] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,7 +38,7 @@ export const AdminServicios = ({ servicios, categorias, onCrear, onEditar, onEli
     setErrores({});
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const nuevosErrores = validarServicio(formulario);
     setErrores(nuevosErrores);
@@ -50,9 +51,17 @@ export const AdminServicios = ({ servicios, categorias, onCrear, onEditar, onEli
       descripcion: formulario.descripcion.trim() || 'Atención nutricional especializada y personalizada.',
     };
 
-    if (editandoId === null) onCrear(datos);
-    else onEditar(editandoId, datos);
-    limpiar();
+    // onCrear / onEditar llaman al backend: si responde con error (400, 403...), se muestra el motivo
+    try {
+      setGuardando(true);
+      if (editandoId === null) await onCrear(datos);
+      else await onEditar(editandoId, datos);
+      limpiar();
+    } catch (err) {
+      setErrores({ ...(err.errores || {}), general: err.message });
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const comenzarEdicion = (servicio) => {
@@ -69,7 +78,8 @@ export const AdminServicios = ({ servicios, categorias, onCrear, onEditar, onEli
   };
 
   const confirmarEliminar = (servicio) => {
-    if (window.confirm(`¿Eliminar "${servicio.nombre}" del catálogo?`)) onEliminar(servicio.id);
+    if (!window.confirm(`¿Eliminar "${servicio.nombre}" del catálogo?`)) return;
+    Promise.resolve(onEliminar(servicio.id)).catch((err) => setErrores({ general: err.message }));
   };
 
   const claseCampo = (campo) => `form-control form-control-sm ${errores[campo] ? 'is-invalid' : ''}`;
@@ -111,11 +121,12 @@ export const AdminServicios = ({ servicios, categorias, onCrear, onEditar, onEli
           {editandoId !== null && (
             <button type="button" className="btn btn-outline-secondary btn-sm" onClick={limpiar}>Cancelar</button>
           )}
-          <button type="submit" className="btn btn-success btn-sm">
-            {editandoId === null ? '+ Agregar' : 'Guardar cambios'}
+          <button type="submit" className="btn btn-success btn-sm" disabled={guardando}>
+            {guardando ? 'Guardando...' : editandoId === null ? '+ Agregar' : 'Guardar cambios'}
           </button>
         </div>
       </form>
+      {errores.general && <div className="alert alert-warning py-2" role="alert">{errores.general}</div>}
 
       <div className="table-responsive">
         <table className="table table-striped align-middle">
