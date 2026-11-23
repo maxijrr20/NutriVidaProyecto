@@ -1,46 +1,41 @@
-// "Base de datos" simulada de usuarios (pacientes registrados y otros roles).
-// Usa la MISMA clave que RegistroPage y LoginPage, así lo que hace el admin
-// se refleja en el registro y en el inicio de sesión.
-// Igual que serviciosService: funciones puras que devuelven una lista NUEVA.
+// CRUD de usuarios contra el backend (rutas /api/v1/usuarios).
+// Todas las rutas exigen el JWT: apiFetch lo agrega en "Authorization: Bearer <token>".
+// El backend comprueba el rol en cada solicitud (@PreAuthorize): si quien llama no es ADMIN, responde 403.
+import { apiFetch } from './api';
 
-export const CLAVE_USUARIOS = 'nutrivida_usuarios';
+// GET /usuarios -> lista de usuarios (solo ADMIN)
+export const listarUsuarios = () => apiFetch('/usuarios');
 
-const normalizarEmail = (email = '') => String(email).trim().toLowerCase();
+// POST /usuarios -> 201 con el usuario creado (solo ADMIN; el admin elige el rol)
+export const crearUsuario = ({ rut, nombre, email, telefono, password, rol }) =>
+  apiFetch('/usuarios', {
+    metodo: 'POST',
+    cuerpo: {
+      rut: rut.trim(),
+      nombre: nombre.trim(),
+      email: email.trim().toLowerCase(),
+      telefono: telefono?.trim() || null,
+      password,
+      rol,
+    },
+  });
 
-// READ
-export const listarUsuarios = () => {
-  try {
-    const guardados = localStorage.getItem(CLAVE_USUARIOS);
-    return guardados ? JSON.parse(guardados) : [];
-  } catch {
-    return [];
-  }
-};
+// PUT /usuarios/{id} -> datos de la cuenta (el RUT y el rol no se cambian aquí)
+export const actualizarUsuario = (id, { nombre, email, telefono, password }) =>
+  apiFetch(`/usuarios/${id}`, {
+    metodo: 'PUT',
+    cuerpo: {
+      nombre: nombre.trim(),
+      email: email.trim().toLowerCase(),
+      telefono: telefono?.trim() || null,
+      // Solo se envía si se quiere cambiar la contraseña
+      ...(password ? { password } : {}),
+    },
+  });
 
-export const guardarUsuarios = (lista) => {
-  localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(lista));
-};
+// PATCH /usuarios/{id}/rol -> cambio de rol (solo ADMIN)
+export const cambiarRolUsuario = (id, rol) =>
+  apiFetch(`/usuarios/${id}/rol`, { metodo: 'PATCH', cuerpo: { rol } });
 
-export const existeEmail = (lista, email) =>
-  lista.some((u) => normalizarEmail(u.email) === normalizarEmail(email));
-
-// CREATE: no permite correos repetidos (lanza un error con mensaje claro)
-export const crearUsuario = (lista, nuevo) => {
-  if (existeEmail(lista, nuevo.email)) {
-    throw new Error('Ya existe un usuario con ese correo.');
-  }
-  return [
-    ...lista,
-    { rol: 'PACIENTE', ...nuevo, email: normalizarEmail(nuevo.email) },
-  ];
-};
-
-// UPDATE: el correo identifica al usuario
-export const actualizarUsuario = (lista, email, datos) =>
-  lista.map((u) =>
-    normalizarEmail(u.email) === normalizarEmail(email) ? { ...u, ...datos } : u
-  );
-
-// DELETE
-export const eliminarUsuario = (lista, email) =>
-  lista.filter((u) => normalizarEmail(u.email) !== normalizarEmail(email));
+// DELETE /usuarios/{id} -> 204: desactivación lógica (activo = false), solo ADMIN
+export const desactivarUsuario = (id) => apiFetch(`/usuarios/${id}`, { metodo: 'DELETE' });
