@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
-import { CLAVE_SESION, obtenerSesion } from '../../utils/sesion';
+import { cerrarSesion as borrarSesion, obtenerSesion } from '../../utils/sesion';
 
 // Enlaces públicos del menú. Se recorren con .map() para no repetir el mismo JSX.
 const ENLACES = [
@@ -35,7 +35,7 @@ export const NavbarNutriVida = () => {
   }, [location.pathname]);
 
   const cerrarSesion = () => {
-    localStorage.removeItem(CLAVE_SESION);
+    borrarSesion();
     setSesion(null);
   };
 
