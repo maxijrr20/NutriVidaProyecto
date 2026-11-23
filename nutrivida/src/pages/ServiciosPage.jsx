@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ServicesCatalogSection } from '../components/organisms/ServicesCatalogSection';
 import { TeamDirectorySection } from '../components/organisms/TeamDirectorySection';
 import { useServicios } from '../context/ServiciosContext';
-import nutricionistas from '../data/nutricionistas.json';
 
 // Página: obtiene los servicios del contexto y la navegación del router,
 // y se los entrega por props a los organismos.
 export const ServiciosPage = () => {
   const navigate = useNavigate();
-  const { servicios } = useServicios();
+  const { servicios, nutricionistas } = useServicios();
 
   return (
     <main className="pagina-servicios py-4">

@@ -1,78 +1,69 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useCitas } from '../context/CitasContext';
 import { obtenerSesion } from '../utils/sesion';
 import { EstadoBadge } from '../components/atoms/EstadoBadge';
 
 export default function SolicitudEnCursoPage() {
-  // Las solicitudes vienen del CitasContext
-  const { citas: solicitudes, actualizarCita } = useCitas();
+  // Las solicitudes vienen del backend (GET /api/v1/citas) a través del CitasContext.
+  // El backend ya filtra: el PACIENTE recibe solo sus solicitudes; el ADMIN, todas.
+  const { citas: solicitudesUsuario, cargando, error, recargar, cancelarCita, reprogramarCita } = useCitas();
 
   // Usuario que inició sesión
   const sesion = obtenerSesion();
 
-  const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje] = useState(null); // { tipo: 'info' | 'danger', texto }
   const [solicitudACancelar, setSolicitudACancelar] = useState(null);
   const [solicitudAReprogramar, setSolicitudAReprogramar] = useState(null);
   const [nuevaFecha, setNuevaFecha] = useState('');
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    recargar();
+  }, [recargar]);
 
   // Si no hay sesión iniciada, no se permite ver las solicitudes
   if (!sesion) {
     return <Navigate to="/login" replace />;
   }
 
-  // El administrador puede ver todas las citas.
-  // Un paciente solamente puede ver las citas asociadas a su correo.
-  const esAdmin =
-    String(sesion.rol || '').toLowerCase() === 'admin';
-
-  const solicitudesUsuario = esAdmin
-    ? solicitudes
-    : solicitudes.filter(
-        (solicitud) =>
-          String(solicitud.email || '')
-            .toLowerCase()
-            .trim() ===
-          String(sesion.email || '')
-            .toLowerCase()
-            .trim()
-      );
-
-  // Confirmar cancelación
-  const confirmarCancelar = () => {
+  // Confirmar cancelación: PATCH /citas/{id}/cancelar
+  const confirmarCancelar = async () => {
     if (!solicitudACancelar) return;
-
-    actualizarCita(solicitudACancelar.id, {
-      estado: 'Cancelada',
-    });
-
-    setMensaje(
-      `La cita #${solicitudACancelar.id} ha sido cancelada.`
-    );
-
-    setSolicitudACancelar(null);
+    setGuardando(true);
+    try {
+      await cancelarCita(solicitudACancelar.id);
+      setMensaje({ tipo: 'info', texto: `La cita #${solicitudACancelar.id} ha sido cancelada.` });
+    } catch (err) {
+      setMensaje({ tipo: 'danger', texto: `No se pudo cancelar la cita: ${err.message}` });
+    } finally {
+      setGuardando(false);
+      setSolicitudACancelar(null);
+    }
   };
 
-  // Confirmar reprogramación
-  const confirmarReprogramar = (e) => {
+  // Confirmar reprogramación: PATCH /citas/{id}/reprogramar
+  // El backend revisa que la hora esté libre (409) y dentro de la jornada del nutricionista (400).
+  const confirmarReprogramar = async (e) => {
     e.preventDefault();
 
     if (!solicitudAReprogramar || !nuevaFecha) return;
 
     const [fecha, hora = ''] = nuevaFecha.split('T');
-
-    actualizarCita(solicitudAReprogramar.id, {
-      fecha,
-      hora,
-      estado: 'Reprogramada',
-    });
-
-    setMensaje(
-      `La cita #${solicitudAReprogramar.id} se reprogramó para el ${nuevaFecha}.`
-    );
-
-    setSolicitudAReprogramar(null);
-    setNuevaFecha('');
+    setGuardando(true);
+    try {
+      await reprogramarCita(solicitudAReprogramar.id, fecha, hora.slice(0, 5));
+      setMensaje({
+        tipo: 'info',
+        texto: `La cita #${solicitudAReprogramar.id} se reprogramó para el ${fecha} a las ${hora.slice(0, 5)} hrs.`,
+      });
+      setSolicitudAReprogramar(null);
+      setNuevaFecha('');
+    } catch (err) {
+      setMensaje({ tipo: 'danger', texto: `No se pudo reprogramar: ${err.message}` });
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -92,15 +83,22 @@ export default function SolicitudEnCursoPage() {
       </div>
 
       {mensaje && (
-        <div
-          className="alert alert-info alert-dismissible fade show"
-          role="alert"
-        >
-          {mensaje}
+        <div className={`alert alert-${mensaje.tipo}`} role={mensaje.tipo === 'danger' ? 'alert' : 'status'}>
+          {mensaje.texto}
         </div>
       )}
 
-      {solicitudesUsuario.length === 0 ? (
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          No se pudieron cargar tus solicitudes: {error}
+        </div>
+      )}
+
+      {cargando && solicitudesUsuario.length === 0 && (
+        <p className="text-muted" role="status">Cargando solicitudes...</p>
+      )}
+
+      {!cargando && solicitudesUsuario.length === 0 ? (
         <div className="alert alert-warning text-center p-4">
           <p className="mb-2">
             No tienes solicitudes de cita registradas actualmente.
@@ -252,6 +250,7 @@ export default function SolicitudEnCursoPage() {
                   type="button"
                   className="btn btn-danger"
                   onClick={confirmarCancelar}
+                  disabled={guardando}
                 >
                   Sí, Cancelar
                 </button>
@@ -295,8 +294,13 @@ export default function SolicitudEnCursoPage() {
                     Selecciona nueva fecha y hora:
                   </label>
 
+                  <p className="small text-muted">
+                    Las horas se toman en bloques de 30 minutos (ej: 10:00 o 10:30) y dentro de la jornada del nutricionista.
+                  </p>
+
                   <input
                     type="datetime-local"
+                    step="1800"
                     className="form-control"
                     required
                     value={nuevaFecha}
@@ -320,6 +324,7 @@ export default function SolicitudEnCursoPage() {
                   <button
                     type="submit"
                     className="btn btn-warning"
+                    disabled={guardando}
                   >
                     Guardar Nueva Fecha
                   </button>

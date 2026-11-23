@@ -59,15 +59,15 @@ function DetalleServicioPage() {
           </p>
 
           <p>
-            <strong>Tipo:</strong> {servicio.tipo}
+            <strong>Tipo:</strong> {servicio.tipo || servicio.categoria}
           </p>
 
           <p>
-            <strong>Duración:</strong> {servicio.duracion}
+            <strong>Duración:</strong> {servicio.duracion || "Por confirmar"}
           </p>
 
           <p>
-            <strong>Modalidad:</strong> {servicio.modalidad}
+            <strong>Modalidad:</strong> {servicio.modalidad || "Por confirmar"}
           </p>
 
           <p>
