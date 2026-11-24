@@ -50,11 +50,13 @@ export const apiFetch = async (ruta, { metodo = 'GET', cuerpo, conToken = true }
     // Token vencido o cuenta desactivada: se borra la sesión local
     if (respuesta.status === 401 && token) cerrarSesion();
 
-    throw new ApiError(
-      respuesta.status,
-      datos?.mensaje || 'Ocurrió un error inesperado.',
-      datos?.errores || {}
-    );
+    // Sin mensaje del backend y con un 5xx: el servidor está apagado, reiniciándose o falló
+    const mensajePorDefecto =
+      respuesta.status >= 500
+        ? 'El servidor no respondió correctamente. Revisa que el backend esté encendido e inténtalo de nuevo.'
+        : 'Ocurrió un error inesperado.';
+
+    throw new ApiError(respuesta.status, datos?.mensaje || mensajePorDefecto, datos?.errores || {});
   }
 
   return datos;
