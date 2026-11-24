@@ -10,9 +10,16 @@ export default defineConfig({
   // Solo en desarrollo (npm run dev): las llamadas a /api se reenvían al backend
   // Spring Boot. Así el navegador habla con un solo origen (localhost:5173).
   // Para usarlo: VITE_API_URL=/api/v1 en el archivo .env
+  // Se quita el encabezado Origin: para el backend la llamada viene del mismo servidor,
+  // así funciona aunque Vite use otro puerto (5174, 5175...) y CORS no la rechaza.
   server: {
     proxy: {
-      '/api': 'http://localhost:8080',
+      '/api': {
+        target: 'http://localhost:8080',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'));
+        },
+      },
     },
   },
 

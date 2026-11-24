@@ -28,8 +28,13 @@ Los pacientes registrados pueden iniciar sesión, solicitar citas, consultar sus
 
 El sistema también cuenta con acceso diferenciado para administradores, quienes disponen de un panel protegido para gestionar información de la aplicación.
 
+Todos los datos (usuarios, catálogo y solicitudes de cita) se guardan en **PostgreSQL** a través de la API REST del backend.
+
+- **Repositorio Backend:** [NutriVida Backend Service](https://github.com/maxijrr20/nutrivida-backend)
+- **Swagger del backend (EC2):** http://34.224.151.181:8080/swagger-ui.html
+
 ---
-- **Repositorio Backend:** [NutriVida Backend Service](https://github.com/maxijrr20/nutrivida-backend.git)
+
 ## Funcionalidades principales
 
 ### Sitio público
@@ -52,11 +57,11 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 - Validación de RUT chileno.
 - Validación de formato de correo electrónico.
 - Validación de contraseña mínima.
-- Detección de correos registrados previamente.
-- Detección de RUT registrados previamente.
+- Detección de correos y RUT registrados previamente (el backend responde 409).
 - Inicio de sesión para pacientes registrados.
 - Inicio de sesión para administrador.
-- Manejo de sesión mediante `localStorage`.
+- Inicio de sesión contra el backend con token **JWT** (60 minutos). La sesión se guarda en `localStorage` y se mantiene al recargar la página.
+- Rutas protegidas por sesión y rol (`RutaPrivada`): sin sesión se pide iniciarla; con un rol sin permiso se muestra la página 403.
 - Cierre de sesión.
 
 ### Gestión de citas
@@ -82,7 +87,7 @@ El sistema también cuenta con acceso diferenciado para administradores, quienes
 - Catálogo: CRUD completo (crear, ver, editar todos los campos y eliminar con confirmación).
 - Ítems críticos: nutricionistas con disponibilidad acotada y sus citas activas.
 - Categorías: crear y renombrar (el cambio se aplica a todos sus servicios).
-- Usuarios: crear, listar, editar y eliminar (misma lista que usa el Registro y el Login).
+- Usuarios: crear con un rol, listar, editar, cambiar el rol y desactivar (contra la base de datos).
 - Historial de solicitudes de un usuario.
 - Reportes (totales por estado, ingresos confirmados, servicio más solicitado) y perfil del administrador.
 
@@ -104,9 +109,9 @@ NutriVidaProyecto/
     │   │   │   └── admin/      # una sección del panel por componente
     │   │   └── templates/
     │   ├── context/        # ServiciosContext y CitasContext (estado compartido)
-    │   ├── data/           # servicios.json y nutricionistas.json (datos del Excel del caso)
+    │   ├── data/           # datos de respaldo del catálogo si el backend no responde
     │   ├── pages/          # una página por ruta
-    │   ├── services/       # "base de datos" simulada: CRUD de servicios, usuarios y categorías
+    │   ├── services/       # llamadas a la API: api.js, authService, usuariosService, catalogoService, citasService
     │   ├── utils/          # validaciones, sesión, filtros y disponibilidad (funciones puras)
     │   ├── App.jsx
     │   └── main.jsx
@@ -140,7 +145,7 @@ El estado compartido (catálogo y solicitudes de cita) vive en `ServiciosContext
 - Bootstrap
 - Context API
 - Hooks de React
-- LocalStorage
+- API REST del backend (fetch + JWT)
 - Vitest
 - Testing Library
 - Jest DOM
@@ -150,25 +155,21 @@ El estado compartido (catálogo y solicitudes de cita) vive en `ServiciosContext
 
 ---
 
-## Persistencia de datos
+## Conexión con el backend y persistencia
 
-En la etapa actual del proyecto, la aplicación funciona principalmente en el frontend.
+El frontend no guarda datos propios: todo pasa por la API REST del backend (`/api/v1`) y queda en PostgreSQL.
 
-La información dinámica se almacena utilizando `localStorage` del navegador.
+| Datos | Rutas de la API | Dónde se usan |
+|---|---|---|
+| Registro, login y sesión | `/auth/register`, `/auth/login`, `/auth/me` | Registro, Login, Navbar |
+| Usuarios y roles | `/usuarios`, `/usuarios/{id}/rol` | Panel › CRUD de Usuarios |
+| Catálogo y categorías | `/servicios`, `/categorias` | Inicio, Servicios, Categorías, Detalle, Panel › Catálogo y Categorías |
+| Nutricionistas | `/nutricionistas` | Servicios y Equipo, Agendar Cita |
+| Solicitudes de cita | `/citas`, `/citas/{id}/cancelar`, `/reprogramar`, `/estado` | Agendar Cita, Mis Solicitudes, Panel › Solicitudes |
 
-Entre los datos almacenados se encuentran:
-
-| Clave en `localStorage` | Contenido |
-|---|---|
-| `nutrivida_servicios` | Catálogo de servicios (CRUD del admin) |
-| `nutrivida_citas` | Solicitudes de cita y su estado |
-| `nutrivida_usuarios` | Usuarios registrados o creados por el admin |
-| `nutrivida_categorias` | Categorías creadas por el admin |
-| `nutrivida_session` | Usuario con sesión iniciada |
-
-Si no hay nada guardado, el catálogo se carga desde `src/data/servicios.json` (datos del Excel del caso).
-
-Esta implementación corresponde a la etapa actual del desarrollo y permite simular la persistencia de información sin utilizar todavía una base de datos externa.
+- Todas las llamadas pasan por `src/services/api.js`, que agrega `Authorization: Bearer <token>` y muestra en pantalla los errores del backend (400, 401, 403, 409).
+- En el navegador solo se guarda la sesión (`nutrivida_session`: datos públicos del usuario y el JWT).
+- Si el backend no responde, el catálogo público se muestra con los datos de respaldo de `src/data` y el panel avisa que los cambios no se guardarán.
 
 ---
 
@@ -192,7 +193,17 @@ cd NutriVidaProyecto/nutrivida
 npm install
 ```
 
-### 4. Iniciar el servidor de desarrollo
+### 4. Configurar la dirección del backend
+
+Copiar `.env.example` como `.env`. Con el backend corriendo en el mismo computador basta con:
+
+```text
+VITE_API_URL=/api/v1
+```
+
+En `npm run dev`, Vite reenvía `/api` a `http://localhost:8080` (ver `vite.config.js`). El backend se levanta como indica su [README](https://github.com/maxijrr20/nutrivida-backend).
+
+### 5. Iniciar el servidor de desarrollo
 
 ```bash
 npm run dev
@@ -212,16 +223,11 @@ http://localhost:5173/
 
 ---
 
-## Credenciales de demostración
+## Cuentas para probar
 
-### Administrador
-
-```text
-Correo: admin@nutrivida.cl
-Contraseña: admin123
-```
-
-Los pacientes deben crear previamente una cuenta desde la opción **Registro** y posteriormente utilizar el correo y contraseña ingresados para iniciar sesión.
+- **Administrador:** se crea al iniciar el backend con las variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` (su valor no se publica en el repositorio).
+- **Pacientes:** se crean desde **Acceso › Crear una cuenta**.
+- **Nutricionistas:** los crea el administrador en **Panel › CRUD de Usuarios**.
 
 ---
 
@@ -244,20 +250,24 @@ npm.cmd run test:run
 Actualmente, la suite cuenta con:
 
 ```text
-7 archivos de prueba
-13 pruebas unitarias
+10 archivos de prueba
+24 pruebas
 ```
 
 | Archivo | Pruebas | Qué verifica |
 |---|---|---|
 | `utils/validaciones.test.js` | 2 | RUT (módulo 11) y correo |
-| `services/serviciosService.test.js` | 3 | Leer, crear y eliminar servicios |
-| `components/organisms/AppointmentFormSection.test.jsx` | 2 | Errores con formulario vacío; guardado y redirección con datos válidos |
-| `pages/AdminDashboardPage.test.jsx` | 2 | Menú del panel; confirmar una cita |
-| `pages/SolicitudEnCursoPage.test.jsx` | 2 | Sin solicitudes; lista del paciente |
+| `services/authService.test.js` | 5 | Login, error 401, correo repetido 409, envío del token, sesión vencida |
+| `services/citasService.test.js` | 4 | Cuerpo de la solicitud de cita, error 409, token en `/citas`, catálogo público sin token |
+| `services/serviciosService.test.js` | 3 | Funciones del catálogo de respaldo |
+| `components/organisms/AppointmentFormSection.test.jsx` | 2 | Errores con formulario vacío; datos válidos |
+| `pages/AdminDashboardPage.test.jsx` | 2 | Menú del panel; confirmar una cita con `PATCH /citas/{id}/estado` |
+| `pages/SolicitudEnCursoPage.test.jsx` | 3 | Sin solicitudes; lista desde `GET /citas`; cancelar |
 | `pages/CategoriasPage.test.jsx` | 1 | Servicios por categoría |
 | `pages/DetalleServicioPage.test.jsx` | 1 | Datos de un servicio |
+| `pages/ContactoPage.test.jsx` | 1 | Renderiza el formulario de agendamiento |
 
+Las pruebas no necesitan el backend encendido: `src/mockApi.js` simula sus respuestas (`fetch` falso).
 Se usan mocks (`vi.fn`, `vi.mock`, `vi.spyOn`) para simular la navegación (`useNavigate`) y `Date.now`.
 La configuración del entorno está en `vite.config.js` (bloque `test`) y en `src/setupTests.js` (jest-dom + limpieza con `afterEach`).
 
@@ -339,24 +349,8 @@ También se dispone de documentación relacionada con:
 
 ## Estado actual
 
-La aplicación se encuentra en una etapa funcional de desarrollo frontend.
-
-Actualmente se encuentran operativos los principales flujos de navegación, registro, autenticación, catálogo, solicitudes de citas, gestión de citas y administración.
-
-
-Abrir en el navegador la URL local indicada en la terminal (por defecto: http://localhost:5173).
+El frontend está integrado con el backend: registro, inicio de sesión, usuarios, catálogo, solicitudes de cita y panel de administración leen y escriben en PostgreSQL. El detalle de las pruebas de integración está en el README del backend y en el documento de integración.
 
 ## ENLACE GOOGLE DRIVE CON ERS
 
 https://drive.google.com/drive/folders/1ncapMCk5xU48v4hHfm7bWwrtKheoQHpF?usp=drive_link
-
-
-
-
-
-
-
-
-
-
-
