@@ -1,12 +1,12 @@
 // Solicitudes de cita contra el backend (/api/v1/citas). Todas exigen sesión (JWT).
 // El backend decide qué ve cada uno: el PACIENTE solo sus solicitudes; ADMIN y NUTRICIONISTA todas.
-import { apiFetch } from './api';
+import { apiRequest } from './api';
 
-export const listarCitas = () => apiFetch('/citas');
+export const listarCitas = () => apiRequest('/citas');
 
 // Datos que entrega AppointmentFormSection -> cuerpo que espera el backend (CitaRequest)
 export const crearCita = (datos) =>
-  apiFetch('/citas', {
+  apiRequest('/citas', {
     metodo: 'POST',
     cuerpo: {
       nombre: datos.nombre.trim(),
@@ -21,11 +21,11 @@ export const crearCita = (datos) =>
     },
   });
 
-export const cancelarCita = (id) => apiFetch(`/citas/${id}/cancelar`, { metodo: 'PATCH' });
+export const cancelarCita = (id) => apiRequest(`/citas/${id}/cancelar`, { metodo: 'PATCH' });
 
 export const reprogramarCita = (id, fecha, hora) =>
-  apiFetch(`/citas/${id}/reprogramar`, { metodo: 'PATCH', cuerpo: { fecha, hora } });
+  apiRequest(`/citas/${id}/reprogramar`, { metodo: 'PATCH', cuerpo: { fecha, hora } });
 
 // Solo ADMIN: Confirmada, Rechazada, Pendiente...
 export const cambiarEstadoCita = (id, estado) =>
-  apiFetch(`/citas/${id}/estado`, { metodo: 'PATCH', cuerpo: { estado } });
+  apiRequest(`/citas/${id}/estado`, { metodo: 'PATCH', cuerpo: { estado } });

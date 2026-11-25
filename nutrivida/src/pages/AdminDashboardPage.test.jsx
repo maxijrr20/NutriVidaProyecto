@@ -38,7 +38,7 @@ describe('Vista de Administración - AdminDashboardPage', () => {
   });
 
   it('al confirmar una solicitud llama a PATCH /citas/{id}/estado y muestra el estado que devuelve el backend', async () => {
-    const fetchMock = mockApi({
+    const llamadas = mockApi({
       'GET /usuarios': [],
       'GET /citas': [citaDemo],
       'PATCH /citas/1/estado': (cuerpo) => ({ ...citaDemo, estado: cuerpo.estado }),
@@ -50,7 +50,7 @@ describe('Vista de Administración - AdminDashboardPage', () => {
     await userEvent.click(within(fila).getByRole('button', { name: 'Confirmar' }));
 
     expect(await within(fila).findByText('Confirmada')).toBeInTheDocument();
-    const llamada = fetchMock.mock.calls.find(([url]) => /\/citas\/1\/estado$/.test(url));
+    const llamada = llamadas.mock.calls.find(([url]) => /\/citas\/1\/estado$/.test(url));
     expect(JSON.parse(llamada[1].body)).toEqual({ estado: 'Confirmada' });
   });
 });

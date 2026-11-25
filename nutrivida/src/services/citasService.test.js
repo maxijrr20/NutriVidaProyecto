@@ -9,7 +9,7 @@ describe('citasService y catalogoService (llamadas al backend)', () => {
   });
 
   it('crearCita envía al backend el cuerpo que espera CitaRequest, con el token', async () => {
-    const fetchMock = mockApi({ 'POST /citas': (cuerpo) => ({ id: 7, estado: 'Pendiente', ...cuerpo }) });
+    const llamadas = mockApi({ 'POST /citas': (cuerpo) => ({ id: 7, estado: 'Pendiente', ...cuerpo }) });
 
     const cita = await crearCita({
       nombre: ' Camila Rojas ',
@@ -23,7 +23,7 @@ describe('citasService y catalogoService (llamadas al backend)', () => {
       motivo: '',
     });
 
-    const [, opciones] = fetchMock.mock.calls[0];
+    const [, opciones] = llamadas.mock.calls[0];
     expect(opciones.headers.Authorization).toBe('Bearer token-de-prueba');
     expect(JSON.parse(opciones.body)).toEqual({
       nombre: 'Camila Rojas',
@@ -48,15 +48,15 @@ describe('citasService y catalogoService (llamadas al backend)', () => {
   });
 
   it('listarCitas usa GET /citas con el token', async () => {
-    const fetchMock = mockApi({ 'GET /citas': [] });
+    const llamadas = mockApi({ 'GET /citas': [] });
     await listarCitas();
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer token-de-prueba');
+    expect(llamadas.mock.calls[0][1].headers.Authorization).toBe('Bearer token-de-prueba');
   });
 
   it('el catálogo es público: GET /servicios no envía el token', async () => {
-    const fetchMock = mockApi({ 'GET /servicios': [{ id: 1, nombre: 'Primera consulta nutricional' }] });
+    const llamadas = mockApi({ 'GET /servicios': [{ id: 1, nombre: 'Primera consulta nutricional' }] });
     const lista = await listarServicios();
     expect(lista).toHaveLength(1);
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    expect(llamadas.mock.calls[0][1].headers.Authorization).toBeUndefined();
   });
 });

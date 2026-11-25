@@ -39,16 +39,16 @@ describe('SolicitudEnCursoPage (solicitudes desde el backend)', () => {
   });
 
   it('despliega las solicitudes que entrega GET /citas, enviando el token', async () => {
-    const fetchMock = mockApi({ 'GET /citas': [citaDemo] });
+    const llamadas = mockApi({ 'GET /citas': [citaDemo] });
     renderPagina();
 
     expect(await screen.findByText(/Solicitud #101/i)).toBeInTheDocument();
     expect(screen.getByText(/Nut. Carolina Fuentes M./)).toBeInTheDocument();
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer token-de-prueba');
+    expect(llamadas.mock.calls[0][1].headers.Authorization).toBe('Bearer token-de-prueba');
   });
 
   it('al cancelar llama a PATCH /citas/{id}/cancelar y muestra el nuevo estado', async () => {
-    const fetchMock = mockApi({
+    const llamadas = mockApi({
       'GET /citas': [citaDemo],
       'PATCH /citas/101/cancelar': { ...citaDemo, estado: 'Cancelada' },
     });
@@ -59,6 +59,6 @@ describe('SolicitudEnCursoPage (solicitudes desde el backend)', () => {
 
     expect(await screen.findByText('La cita #101 ha sido cancelada.')).toBeInTheDocument();
     expect(screen.getByText('Cancelada')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/citas\/101\/cancelar$/), expect.objectContaining({ method: 'PATCH' }));
+    expect(llamadas).toHaveBeenCalledWith(expect.stringMatching(/\/citas\/101\/cancelar$/), expect.objectContaining({ method: 'PATCH' }));
   });
 });

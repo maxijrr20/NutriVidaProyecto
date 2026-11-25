@@ -56,7 +56,7 @@ export const AdminDashboardPage = () => {
   const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
   const [errorUsuarios, setErrorUsuarios] = useState('');
 
-  // Si el token venció o la cuenta se desactivó (401), apiFetch borra la sesión: se vuelve al login
+  // Si el token venció o la cuenta se desactivó (401), el interceptor de Axios borra la sesión: se vuelve al login
   const manejarErrorApi = useCallback((err) => {
     if (err.estado === 401) navigate('/login', { replace: true });
     throw err;
