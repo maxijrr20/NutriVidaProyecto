@@ -1,10 +1,10 @@
 // Operaciones de autenticación contra el backend (rutas /api/v1/auth/*).
-import { apiFetch } from './api';
+import { apiRequest } from './api';
 import { guardarSesion } from '../utils/sesion';
 
 // POST /auth/register -> 201 con el usuario creado (rol PACIENTE, lo asigna el servidor)
 export const registrarPaciente = ({ rut, nombre, email, telefono, password }) =>
-  apiFetch('/auth/register', {
+  apiRequest('/auth/register', {
     metodo: 'POST',
     conToken: false,
     cuerpo: {
@@ -19,7 +19,7 @@ export const registrarPaciente = ({ rut, nombre, email, telefono, password }) =>
 // POST /auth/login -> 200 { accessToken, tokenType, expiresIn, usuario }
 // Guarda la sesión (token + datos del usuario) y devuelve el usuario.
 export const iniciarSesion = async ({ email, password }) => {
-  const respuesta = await apiFetch('/auth/login', {
+  const respuesta = await apiRequest('/auth/login', {
     metodo: 'POST',
     conToken: false,
     cuerpo: { email: email.trim().toLowerCase(), password },
@@ -29,4 +29,4 @@ export const iniciarSesion = async ({ email, password }) => {
 };
 
 // GET /auth/me -> datos del dueño del token
-export const obtenerUsuarioActual = () => apiFetch('/auth/me');
+export const obtenerUsuarioActual = () => apiRequest('/auth/me');

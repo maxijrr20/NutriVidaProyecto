@@ -145,7 +145,7 @@ El estado compartido (catálogo y solicitudes de cita) vive en `ServiciosContext
 - Bootstrap
 - Context API
 - Hooks de React
-- API REST del backend (fetch + JWT)
+- Axios (cliente HTTP hacia la API REST del backend, con interceptores para el JWT y los errores)
 - Vitest
 - Testing Library
 - Jest DOM
@@ -167,7 +167,9 @@ El frontend no guarda datos propios: todo pasa por la API REST del backend (`/ap
 | Nutricionistas | `/nutricionistas` | Servicios y Equipo, Agendar Cita |
 | Solicitudes de cita | `/citas`, `/citas/{id}/cancelar`, `/reprogramar`, `/estado` | Agendar Cita, Mis Solicitudes, Panel › Solicitudes |
 
-- Todas las llamadas pasan por `src/services/api.js`, que agrega `Authorization: Bearer <token>` y muestra en pantalla los errores del backend (400, 401, 403, 409).
+- Todas las llamadas pasan por `src/services/api.js`, una instancia de **Axios** (`http`) con la dirección del backend:
+    - un **interceptor de solicitud** agrega `Authorization: Bearer <token>` cuando hay sesión;
+    - un **interceptor de respuesta** convierte los errores del backend (400, 401, 403, 409, 5xx o sin conexión) en mensajes para mostrar en pantalla y cierra la sesión ante un 401.
 - En el navegador solo se guarda la sesión (`nutrivida_session`: datos públicos del usuario y el JWT).
 - Si el backend no responde, el catálogo público se muestra con los datos de respaldo de `src/data` y el panel avisa que los cambios no se guardarán.
 
@@ -251,13 +253,13 @@ Actualmente, la suite cuenta con:
 
 ```text
 10 archivos de prueba
-24 pruebas
+25 pruebas
 ```
 
 | Archivo | Pruebas | Qué verifica |
 |---|---|---|
 | `utils/validaciones.test.js` | 2 | RUT (módulo 11) y correo |
-| `services/authService.test.js` | 5 | Login, error 401, correo repetido 409, envío del token, sesión vencida |
+| `services/authService.test.js` | 6 | Login, error 401, correo repetido 409, token enviado por el interceptor, servidor sin respuesta, sesión vencida |
 | `services/citasService.test.js` | 4 | Cuerpo de la solicitud de cita, error 409, token en `/citas`, catálogo público sin token |
 | `services/serviciosService.test.js` | 3 | Funciones del catálogo de respaldo |
 | `components/organisms/AppointmentFormSection.test.jsx` | 2 | Errores con formulario vacío; datos válidos |
@@ -267,7 +269,7 @@ Actualmente, la suite cuenta con:
 | `pages/DetalleServicioPage.test.jsx` | 1 | Datos de un servicio |
 | `pages/ContactoPage.test.jsx` | 1 | Renderiza el formulario de agendamiento |
 
-Las pruebas no necesitan el backend encendido: `src/mockApi.js` simula sus respuestas (`fetch` falso).
+Las pruebas no necesitan el backend encendido: `src/mockApi.js` reemplaza el *adapter* de Axios por respuestas simuladas.
 Se usan mocks (`vi.fn`, `vi.mock`, `vi.spyOn`) para simular la navegación (`useNavigate`) y `Date.now`.
 La configuración del entorno está en `vite.config.js` (bloque `test`) y en `src/setupTests.js` (jest-dom + limpieza con `afterEach`).
 
