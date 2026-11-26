@@ -38,3 +38,13 @@ export const obtenerSesion = () => {
 };
 
 export const obtenerToken = () => obtenerSesion()?.token ?? null;
+
+// Reemplaza los datos del usuario guardados (por ejemplo, si el ADMIN le cambió el rol)
+// manteniendo el mismo token y su vencimiento.
+export const actualizarUsuarioSesion = (usuario) => {
+  const sesion = obtenerSesion();
+  if (!sesion) return null;
+  const actualizada = { ...sesion, ...usuario, token: sesion.token, expiraEn: sesion.expiraEn };
+  localStorage.setItem(CLAVE_SESION, JSON.stringify(actualizada));
+  return actualizada;
+};
