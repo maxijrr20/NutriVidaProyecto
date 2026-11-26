@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { iniciarSesion, registrarPaciente, obtenerUsuarioActual } from './authService';
+import { iniciarSesion, registrarPaciente, obtenerUsuarioActual, validarSesion } from './authService';
 import { obtenerSesion, obtenerToken } from '../utils/sesion';
-import { mockApi } from '../mockApi';
+import { mockApi, sinBackend, iniciarSesionDePrueba } from '../mockApi';
 
 const usuarioDemo = {
   id: 2,
@@ -81,5 +81,49 @@ describe('authService (conexión con el backend usando Axios)', () => {
 
     expect(obtenerSesion()).toBeNull();
     expect(localStorage.getItem('nutrivida_session')).toBeNull();
+  });
+});
+
+describe('validarSesion (revalida con el backend la sesión de localStorage al recargar)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('sin sesión guardada no llama al backend', async () => {
+    const llamadas = mockApi({});
+    expect(await validarSesion()).toBeNull();
+    expect(llamadas).not.toHaveBeenCalled();
+  });
+
+  it('token aceptado: actualiza los datos guardados (por ejemplo, un rol nuevo) y conserva el token', async () => {
+    iniciarSesionDePrueba({ rol: 'PACIENTE', token: 'token-guardado' });
+    const llamadas = mockApi({ 'GET /auth/me': { ...usuarioDemo, rol: 'NUTRICIONISTA' } });
+
+    const sesion = await validarSesion();
+
+    expect(sesion.rol).toBe('NUTRICIONISTA');
+    expect(obtenerSesion().rol).toBe('NUTRICIONISTA');
+    expect(obtenerToken()).toBe('token-guardado');
+    const [url, opciones] = llamadas.mock.calls[0];
+    expect(url).toMatch(/\/api\/v1\/auth\/me$/);
+    expect(opciones.headers.Authorization).toBe('Bearer token-guardado');
+  });
+
+  it('token rechazado por el backend (401): cierra la sesión', async () => {
+    iniciarSesionDePrueba();
+    mockApi({ 'GET /auth/me': { status: 401, body: { estado: 401, mensaje: 'Token inválido.' } } });
+
+    expect(await validarSesion()).toBeNull();
+    expect(obtenerSesion()).toBeNull();
+  });
+
+  it('servidor sin respuesta: mantiene la sesión guardada', async () => {
+    iniciarSesionDePrueba({ nombre: 'Paciente Demo' });
+    sinBackend();
+
+    const sesion = await validarSesion();
+
+    expect(sesion.nombre).toBe('Paciente Demo');
+    expect(obtenerSesion()).not.toBeNull();
   });
 });

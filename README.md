@@ -60,7 +60,7 @@ Todos los datos (usuarios, catálogo y solicitudes de cita) se guardan en **Post
 - Detección de correos y RUT registrados previamente (el backend responde 409).
 - Inicio de sesión para pacientes registrados.
 - Inicio de sesión para administrador.
-- Inicio de sesión contra el backend con token **JWT** (60 minutos). La sesión se guarda en `localStorage` y se mantiene al recargar la página.
+- Inicio de sesión contra el backend con token **JWT** (60 minutos). La sesión se guarda en `localStorage` y, al recargar la página, se revalida con el backend (`GET /api/v1/auth/me`) antes de mostrar la aplicación.
 - Rutas protegidas por sesión y rol (`RutaPrivada`): sin sesión se pide iniciarla; con un rol sin permiso se muestra la página 403.
 - Cierre de sesión.
 
@@ -161,16 +161,17 @@ El frontend no guarda datos propios: todo pasa por la API REST del backend (`/ap
 
 | Datos | Rutas de la API | Dónde se usan |
 |---|---|---|
-| Registro, login y sesión | `/auth/register`, `/auth/login`, `/auth/me` | Registro, Login, Navbar |
-| Usuarios y roles | `/usuarios`, `/usuarios/{id}/rol` | Panel › CRUD de Usuarios |
-| Catálogo y categorías | `/servicios`, `/categorias` | Inicio, Servicios, Categorías, Detalle, Panel › Catálogo y Categorías |
-| Nutricionistas | `/nutricionistas` | Servicios y Equipo, Agendar Cita |
-| Solicitudes de cita | `/citas`, `/citas/{id}/cancelar`, `/reprogramar`, `/estado` | Agendar Cita, Mis Solicitudes, Panel › Solicitudes |
+| Registro, login y sesión | `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/me` | Registro, Login, Navbar |
+| Usuarios y roles | `/api/v1/usuarios`, `/api/v1/usuarios/{id}/rol` | Panel › CRUD de Usuarios |
+| Catálogo y categorías | `/api/v1/servicios`, `/api/v1/categorias` | Inicio, Servicios, Categorías, Detalle, Panel › Catálogo y Categorías |
+| Nutricionistas | `/api/v1/nutricionistas` | Servicios y Equipo, Agendar Cita |
+| Solicitudes de cita | `/api/v1/citas`, `/api/v1/citas/{id}/cancelar`, `/api/v1/citas/{id}/reprogramar`, `/api/v1/citas/{id}/estado` | Agendar Cita, Mis Solicitudes, Panel › Solicitudes |
 
 - Todas las llamadas pasan por `src/services/api.js`, una instancia de **Axios** (`http`) con la dirección del backend:
     - un **interceptor de solicitud** agrega `Authorization: Bearer <token>` cuando hay sesión;
     - un **interceptor de respuesta** convierte los errores del backend (400, 401, 403, 409, 5xx o sin conexión) en mensajes para mostrar en pantalla y cierra la sesión ante un 401.
 - En el navegador solo se guarda la sesión (`nutrivida_session`: datos públicos del usuario y el JWT).
+- Al cargar o recargar la página, `ValidadorSesion` revalida esa sesión con el backend (`GET /api/v1/auth/me`): si el token fue rechazado (401, 403, 404) se cierra la sesión; si es válido se actualizan los datos guardados (por ejemplo, un rol nuevo); si el servidor no responde se mantiene, porque cada ruta protegida vuelve a validar el token.
 - Si el backend no responde, el catálogo público se muestra con los datos de respaldo de `src/data` y el panel avisa que los cambios no se guardarán.
 
 ---
@@ -252,19 +253,20 @@ npm.cmd run test:run
 Actualmente, la suite cuenta con:
 
 ```text
-10 archivos de prueba
-25 pruebas
+11 archivos de prueba
+31 pruebas
 ```
 
 | Archivo | Pruebas | Qué verifica |
 |---|---|---|
 | `utils/validaciones.test.js` | 2 | RUT (módulo 11) y correo |
-| `services/authService.test.js` | 6 | Login, error 401, correo repetido 409, token enviado por el interceptor, servidor sin respuesta, sesión vencida |
-| `services/citasService.test.js` | 4 | Cuerpo de la solicitud de cita, error 409, token en `/citas`, catálogo público sin token |
+| `services/authService.test.js` | 10 | Login, error 401, correo repetido 409, token enviado por el interceptor, servidor sin respuesta, sesión vencida; revalidación de la sesión con `/api/v1/auth/me` (sin sesión, token aceptado, token rechazado, servidor sin respuesta) |
+| `components/ValidadorSesion.test.jsx` | 2 | Sin sesión muestra la app; con sesión espera `/api/v1/auth/me` y entra sin sesión si el token fue rechazado |
+| `services/citasService.test.js` | 4 | Cuerpo de la solicitud de cita, error 409, token en `/api/v1/citas`, catálogo público sin token |
 | `services/serviciosService.test.js` | 3 | Funciones del catálogo de respaldo |
 | `components/organisms/AppointmentFormSection.test.jsx` | 2 | Errores con formulario vacío; datos válidos |
-| `pages/AdminDashboardPage.test.jsx` | 2 | Menú del panel; confirmar una cita con `PATCH /citas/{id}/estado` |
-| `pages/SolicitudEnCursoPage.test.jsx` | 3 | Sin solicitudes; lista desde `GET /citas`; cancelar |
+| `pages/AdminDashboardPage.test.jsx` | 2 | Menú del panel; confirmar una cita con `PATCH /api/v1/citas/{id}/estado` |
+| `pages/SolicitudEnCursoPage.test.jsx` | 3 | Sin solicitudes; lista desde `GET /api/v1/citas`; cancelar |
 | `pages/CategoriasPage.test.jsx` | 1 | Servicios por categoría |
 | `pages/DetalleServicioPage.test.jsx` | 1 | Datos de un servicio |
 | `pages/ContactoPage.test.jsx` | 1 | Renderiza el formulario de agendamiento |

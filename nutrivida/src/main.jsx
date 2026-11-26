@@ -5,13 +5,16 @@ import './index.css'
 import App from './App.jsx'
 import { ServiciosProvider } from './context/ServiciosContext.jsx'
 import { CitasProvider } from './context/CitasContext.jsx'
+import ValidadorSesion from './components/ValidadorSesion.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ServiciosProvider>
-      <CitasProvider>
-        <App />
-      </CitasProvider>
-    </ServiciosProvider>
+    <ValidadorSesion>
+      <ServiciosProvider>
+        <CitasProvider>
+          <App />
+        </CitasProvider>
+      </ServiciosProvider>
+    </ValidadorSesion>
   </StrictMode>,
 )
